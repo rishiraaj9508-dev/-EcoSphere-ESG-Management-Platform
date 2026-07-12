@@ -1,0 +1,26 @@
+from django import template
+import re
+
+register = template.Library()
+
+@register.filter
+def replace_underscore(value):
+    if not value:
+        return ""
+    return str(value).replace("_", " ")
+
+@register.simple_tag(takes_context=True)
+def active_link(context, pattern):
+    request = context.get('request')
+    if not request:
+        return ""
+    path = request.path
+    # Match root path specifically if pattern is '^/$'
+    if pattern == '^/$':
+        if path == '/':
+            return "bg-green-500/10 text-green-400 font-medium border-l-2 border-green-500"
+        return "text-gray-400 hover:bg-gray-800 hover:text-white"
+    
+    if re.search(pattern, path):
+        return "bg-green-500/10 text-green-400 font-medium border-l-2 border-green-500"
+    return "text-gray-400 hover:bg-gray-800 hover:text-white"
