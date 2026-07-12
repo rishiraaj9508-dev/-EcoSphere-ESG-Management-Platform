@@ -1,5 +1,5 @@
 from django.db import transaction
-from .models import XPLedger
+from .models import XPLedger, Reward, RedemptionTransaction
 
 class GamificationService:
     @staticmethod
@@ -35,3 +35,35 @@ class GamificationService:
             pass
             
         return ledger_entry
+
+    @staticmethod
+    @transaction.atomic
+    def redeem_reward(employee, reward):
+        if reward.stock_quantity <= 0:
+            raise ValueError("This reward is out of stock.")
+            
+        current_balance = GamificationService.get_xp_balance(employee)
+        if current_balance < reward.xp_cost:
+            raise ValueError("Insufficient XP balance to redeem this reward.")
+            
+        # Deduct XP (award negative amount)
+        GamificationService.award_xp(
+            employee=employee,
+            amount=-reward.xp_cost,
+            source='redemption',
+            note=f"Redeemed reward: {reward.name}"
+        )
+        
+        # Decrement stock
+        reward.stock_quantity -= 1
+        if reward.stock_quantity == 0:
+            reward.is_out_of_stock = True
+        reward.save()
+        
+        # Create transaction record
+        tx = RedemptionTransaction.objects.create(
+            employee=employee,
+            reward=reward,
+            xp_spent=reward.xp_cost
+        )
+        return tx
