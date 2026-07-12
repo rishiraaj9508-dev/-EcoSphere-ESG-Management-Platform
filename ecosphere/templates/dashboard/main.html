@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | EcoSphere{% endblock %}
+
+{% block breadcrumb %}Overview{% endblock %}
+{% block page_title %}EcoSphere Dashboard ({{ dept_name }}){% endblock %}
+
+{% block content %}
+<!-- KPI Card Row -->
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    {% for card in kpi_cards %}
+        {% include 'partials/kpi_card.html' with label=card.label value=card.value trend_text=card.trend_text trend_type=card.trend_type trend_class=card.trend_class %}
+    {% endfor %}
+</div>
+
+<!-- Charts Row -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+    <!-- Grouped Bar Chart -->
+    <div class="md:col-span-2">
+        {% include 'partials/chart_card.html' with chart_id="esgRankingChart" chart_title="Summary ESG Ranking by Department" %}
+    </div>
+    <!-- Doughnut Chart -->
+    <div>
+        {% include 'partials/chart_card.html' with chart_id="scoreProportionChart" chart_title="Active Score Component Proportions" %}
+    </div>
+</div>
+
+<!-- Quick Actions & Summaries -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+    <!-- Quick Actions Panel -->
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-gray-700 transition-all duration-300 flex flex-col justify-between">
+        <div>
+            <h3 class="text-sm font-semibold text-gray-300 mb-4 uppercase tracking-wider">Quick Actions</h3>
+            <div class="flex flex-col gap-3">
+                <a href="{% url 'environmental:emissions' %}" class="flex items-center justify-center py-2 px-4 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold transition-colors text-xs shadow-md shadow-green-500/10 min-h-[44px]">
+                    + Log Carbon Data
+                </a>
+                <a href="{% url 'gamification:challenges' %}" class="flex items-center justify-center py-2 px-4 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold transition-colors text-xs shadow-md shadow-orange-500/10 min-h-[44px]">
+                    🏆 Join Challenge
+                </a>
+                <a href="{% url 'reports:custom' %}" class="flex items-center justify-center py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors text-xs shadow-md shadow-blue-500/10 min-h-[44px]">
+                    📊 View Reports
+                </a>
+            </div>
+        </div>
+        <p class="text-[10px] text-gray-600 mt-4 text-center font-medium">EcoSphere ESG Management platform v1.0</p>
+    </div>
+
+    <!-- Active Challenges & Issues Summary -->
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-gray-700 transition-all duration-300 md:col-span-2">
+        <h3 class="text-sm font-semibold text-gray-300 mb-4 uppercase tracking-wider">Active Metrics Summary</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 h-full pb-8">
+            <div class="bg-gray-950 border border-gray-800 p-5 rounded-xl text-center flex flex-col justify-center items-center">
+                <span class="text-3xl">⚠️</span>
+                <p class="text-xs text-gray-500 font-bold uppercase tracking-wider mt-3">Open Issues</p>
+                <p class="text-3xl font-extrabold text-red-400 mt-2">{{ open_issues_count }}</p>
+            </div>
+            <div class="bg-gray-950 border border-gray-800 p-5 rounded-xl text-center flex flex-col justify-center items-center">
+                <span class="text-3xl">🏆</span>
+                <p class="text-xs text-gray-500 font-bold uppercase tracking-wider mt-3">Active Challenges</p>
+                <p class="text-3xl font-extrabold text-orange-400 mt-2">{{ active_challenges_count }}</p>
+            </div>
+            <div class="bg-gray-950 border border-gray-800 p-5 rounded-xl text-center flex flex-col justify-center items-center">
+                <span class="text-3xl">🤝</span>
+                <p class="text-xs text-gray-500 font-bold uppercase tracking-wider mt-3">Upcoming CSR</p>
+                <p class="text-3xl font-extrabold text-blue-400 mt-2">{{ upcoming_csr_count }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Department ESG Leaderboard -->
+<div class="table-container p-6">
+    <h3 class="text-sm font-semibold text-gray-300 mb-4 uppercase tracking-wider">Department ESG Leaderboard</h3>
+    <table class="esg-table">
+        <thead>
+            <tr>
+                <th class="w-16">Rank</th>
+                <th>Department</th>
+                <th>Environmental Score</th>
+                <th>Social Score</th>
+                <th>Governance Score</th>
+                <th class="text-right">Overall ESG Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in leaderboard %}
+                <tr class="{% if user.profile.department == item.department %}bg-green-500/10 border-l-2 border-green-500{% endif %}">
+                    <td>
+                        {% if forloop.counter == 1 %}
+                            🥇
+                        {% elif forloop.counter == 2 %}
+                            🥈
+                        {% elif forloop.counter == 3 %}
+                            🥉
+                        {% else %}
+                            {{ forloop.counter }}
+                        {% endif %}
+                    </td>
+                    <td class="font-semibold text-white">{{ item.department.name }}</td>
+                    <td>{{ item.environmental_score }} / 100</td>
+                    <td>{{ item.social_score }} / 100</td>
+                    <td>{{ item.governance_score }} / 100</td>
+                    <td class="text-right text-green-400 font-bold">{{ item.overall_score }} / 100</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-6 text-gray-500 font-medium">No department scores registered yet.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Parse chart data injected from backend views
+        const barData = {{ bar_chart_data|safe }};
+        const doughnutData = {{ doughnut_chart_data|safe }};
+
+        // 1. Grouped Bar Chart Configuration
+        const ctxBar = document.getElementById('esgRankingChart');
+        if (ctxBar) {
+            new Chart(ctxBar.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: barData.labels,
+                    datasets: [
+                        {
+                            label: 'Overall Score',
+                            data: barData.overall,
+                            backgroundColor: '#22c55e', // Emerald Green
+                            borderRadius: 6
+                        },
+                        {
+                            label: 'Environmental',
+                            data: barData.env,
+                            backgroundColor: '#3b82f6', // Bright Blue
+                            borderRadius: 6
+                        },
+                        {
+                            label: 'Social',
+                            data: barData.soc,
+                            backgroundColor: '#a855f7', // Purple
+                            borderRadius: 6
+                        },
+                        {
+                            label: 'Governance',
+                            data: barData.gov,
+                            backgroundColor: '#eab308', // Golden Yellow
+                            borderRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: '#9ca3af',
+                                font: { family: 'Inter', size: 10, weight: '500' }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#9ca3af', font: { family: 'Inter', size: 10 } }
+                        },
+                        y: {
+                            grid: { color: '#1f2937' },
+                            ticks: { color: '#9ca3af', font: { family: 'Inter', size: 10 } },
+                            min: 0,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        // 2. Component Doughnut Chart Configuration
+        const ctxDoughnut = document.getElementById('scoreProportionChart');
+        if (ctxDoughnut) {
+            new Chart(ctxDoughnut.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: doughnutData.labels,
+                    datasets: [{
+                        data: doughnutData.scores,
+                        backgroundColor: ['#3b82f6', '#a855f7', '#eab308'], // Blue, Purple, Yellow
+                        borderColor: '#111827',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#9ca3af',
+                                font: { family: 'Inter', size: 11, weight: '500' }
+                            }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
