@@ -1,0 +1,168 @@
+{% load static core_tags %}
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}EcoSphere{% endblock %} | ESG Management Platform</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gray: {
+                            950: '#030712',
+                            900: '#111827',
+                            800: '#1f2937',
+                            700: '#374151',
+                            600: '#4b5563',
+                            500: '#9ca3af',
+                            400: '#d1d5db',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar for dark theme */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #030712;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1f2937;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #374151;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-950 text-white min-h-screen flex flex-col md:flex-row overflow-x-hidden">
+
+    <!-- Mobile Top Header Bar -->
+    <div class="md:hidden w-full bg-gray-900 border-b border-gray-800 px-4 py-3 flex items-center justify-between z-40">
+        <span class="text-green-400 font-bold text-lg">🌱 EcoSphere</span>
+        <button id="nav-toggle" class="text-gray-400 hover:text-white focus:outline-none p-1">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+            </svg>
+        </button>
+    </div>
+
+    <!-- LEFT SIDEBAR (fixed width on desktop, hidden/slide-out on mobile) -->
+    <aside id="sidebar" class="w-56 h-screen bg-gray-900 border-r border-gray-800 flex flex-col fixed top-0 left-0 z-30 transition-transform duration-300 transform -translate-x-full md:translate-x-0">
+        <!-- Logo Header -->
+        <div class="px-5 py-4 border-b border-gray-800 flex items-center justify-between">
+            <div>
+                <span class="text-green-400 font-bold text-lg">🌱 EcoSphere</span>
+                <p class="text-[10px] text-gray-500 font-semibold tracking-wider uppercase mt-0.5">ESG Management</p>
+            </div>
+            <!-- Close Button for Mobile -->
+            <button id="nav-close" class="md:hidden text-gray-500 hover:text-white">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Navigation Links Scroll Area -->
+        <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+            {% include 'partials/sidebar_nav.html' %}
+        </nav>
+
+        <!-- User Role Footer -->
+        <div class="p-4 border-t border-gray-800 bg-gray-900/50 flex flex-col gap-1 text-xs">
+            {% if user.is_authenticated %}
+                <span class="text-white font-medium truncate">{{ user.username }}</span>
+                <span class="text-[10px] text-gray-400 truncate">{{ user.email }}</span>
+                <div class="mt-1 flex items-center gap-1.5">
+                    <span class="px-2 py-0.5 rounded bg-gray-800 text-green-400 font-semibold uppercase text-[9px] border border-gray-700">
+                        {{ user.profile.role|default:"Employee"|replace_underscore }}
+                    </span>
+                    <a href="{% url 'account_logout' %}" class="text-gray-500 hover:text-red-400 transition-colors ml-auto font-medium">Log out</a>
+                </div>
+            {% else %}
+                <a href="{% url 'account_login' %}" class="w-full text-center py-1.5 bg-green-500 hover:bg-green-600 text-white rounded font-medium transition-colors">Log In</a>
+            {% endif %}
+        </div>
+    </aside>
+
+    <!-- Mobile overlay back drop -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/60 z-20 hidden"></div>
+
+    <!-- MAIN CONTENT AREA (offset on desktop by sidebar width) -->
+    <div class="flex-1 md:ml-56 flex flex-col min-h-screen w-full">
+        <!-- Top bar sticky -->
+        <header class="bg-gray-900/90 backdrop-blur border-b border-gray-800 px-6 py-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between sticky top-0 z-20 gap-3">
+            <div>
+                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">
+                    {% block breadcrumb %}Dashboard{% endblock %}
+                </p>
+                <h1 class="text-base font-bold text-white mt-0.5">
+                    {% block page_title %}EcoSphere Dashboard{% endblock %}
+                </h1>
+            </div>
+            <div class="flex items-center gap-4 self-end sm:self-auto">
+                <!-- Module Tab Pills -->
+                {% include 'partials/module_tabs.html' %}
+                
+                <!-- Notification Bell -->
+                <a href="{% url 'notifications:list' %}" class="relative text-gray-400 hover:text-white p-1 rounded-lg hover:bg-gray-800 transition-colors" title="Notifications">
+                    <svg class="w-5.5 h-5.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 00-5-5.917V4a1 1 0 10-2 0v1.083A6 6 0 006 11v3.159c0 .538-.214 1.055-.595 1.437L4 17h5m6 0a3 3 0 11-6 0" />
+                    </svg>
+                    {% if unread_count %}
+                        <span class="absolute top-0 right-0 bg-red-500 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center font-bold border border-gray-900">{{ unread_count }}</span>
+                    {% endif %}
+                </a>
+            </div>
+        </header>
+
+        <!-- Page body content wrapper -->
+        <main class="flex-1 px-6 py-6 max-w-7xl w-full mx-auto">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- Mobile menu toggle JavaScript -->
+    <script>
+        const toggleBtn = document.getElementById('nav-toggle');
+        const closeBtn = document.getElementById('nav-close');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+
+        function openSidebar() {
+            sidebar.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+        }
+
+        function closeSidebar() {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        }
+
+        toggleBtn?.addEventListener('click', openSidebar);
+        closeBtn?.addEventListener('click', closeSidebar);
+        overlay?.addEventListener('click', closeSidebar);
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

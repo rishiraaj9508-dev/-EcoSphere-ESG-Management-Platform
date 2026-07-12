@@ -1,0 +1,32 @@
+{% load core_tags %}
+<div class="hidden sm:flex items-center gap-1 bg-gray-950 p-1 rounded-lg border border-gray-800 text-xs">
+    {% if '/environmental/' in request.path %}
+        <a href="{% url 'environmental:emissions' %}" class="px-3 py-1.5 rounded-md transition-colors {% active_link '/environmental/emissions' %}">Emission Factors & Tracking</a>
+        <a href="{% url 'environmental:goals' %}" class="px-3 py-1.5 rounded-md transition-colors {% active_link '/environmental/goals' %}">Goals & Targets</a>
+        <a href="{% url 'environmental:dashboard' %}" class="px-3 py-1.5 rounded-md transition-colors {% active_link '/environmental/dashboard' %}">Env Dashboard</a>
+    {% elif '/social/' in request.path %}
+        <a href="{% url 'social:csr' %}" class="px-3 py-1.5 rounded-md transition-colors {% active_link '/social/csr' %}">CSR Activities</a>
+        <a href="{% url 'social:diversity' %}" class="px-3 py-1.5 rounded-md transition-colors {% active_link '/social/diversity' %}">Diversity Metrics</a>
+        <a href="{% url 'social:training' %}" class="px-3 py-1.5 rounded-md transition-colors {% active_link '/social/training' %}">Training</a>
+    {% elif '/governance/' in request.path %}
+        <a href="{% url 'governance:policies' %}" class="px-3 py-1.5 rounded-md transition-colors {% active_link '/governance/policies' %}">Policies</a>
+        <a href="{% url 'governance:audits' %}" class="px-3 py-1.5 rounded-md transition-colors {% active_link '/governance/audits' %}">Audits</a>
+        <a href="{% url 'governance:issues' %}" class="px-3 py-1.5 rounded-md transition-colors {% active_link '/governance/issues' %}">Compliance Issues</a>
+    {% elif '/gamification/' in request.path %}
+        <a href="{% url 'gamification:challenges' %}" class="px-3 py-1.5 rounded-md transition-colors {% active_link '/gamification/challenges' %}">Challenges</a>
+        <a href="{% url 'gamification:badges' %}" class="px-3 py-1.5 rounded-md transition-colors {% active_link '/gamification/badges' %}">Badges</a>
+        <a href="{% url 'gamification:rewards' %}" class="px-3 py-1.5 rounded-md transition-colors {% active_link '/gamification/rewards' %}">Rewards</a>
+        <a href="{% url 'gamification:leaderboard' %}" class="px-3 py-1.5 rounded-md transition-colors {% active_link '/gamification/leaderboard' %}">Leaderboard</a>
+    {% elif '/reports/' in request.path %}
+        <a href="{% url 'reports:environmental' %}" class="px-3 py-1.5 rounded-md transition-colors {% active_link '/reports/environmental' %}">Environmental</a>
+        <a href="{% url 'reports:social' %}" class="px-3 py-1.5 rounded-md transition-colors {% active_link '/reports/social' %}">Social</a>
+        <a href="{% url 'reports:governance' %}" class="px-3 py-1.5 rounded-md transition-colors {% active_link '/reports/governance' %}">Governance</a>
+        <a href="{% url 'reports:summary' %}" class="px-3 py-1.5 rounded-md transition-colors {% active_link '/reports/summary' %}">ESG Summary</a>
+        <a href="{% url 'reports:custom' %}" class="px-3 py-1.5 rounded-md transition-colors {% active_link '/reports/custom' %}">Custom Builder</a>
+    {% elif '/core/' in request.path or '/notifications/settings' in request.path %}
+        <a href="{% url 'core:departments' %}" class="px-3 py-1.5 rounded-md transition-colors {% active_link '/core/departments' %}">Departments</a>
+        <a href="{% url 'core:categories' %}" class="px-3 py-1.5 rounded-md transition-colors {% active_link '/core/categories' %}">Categories</a>
+        <a href="{% url 'core:esg-config' %}" class="px-3 py-1.5 rounded-md transition-colors {% active_link '/core/esg-config' %}">ESG Configuration</a>
+        <a href="{% url 'notifications:settings' %}" class="px-3 py-1.5 rounded-md transition-colors {% active_link '/notifications/settings' %}">Notifications</a>
+    {% endif %}
+</div>

@@ -1,0 +1,131 @@
+{% load core_tags %}
+<style>
+    .nav-group-label {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #4b5563;
+        padding-top: 1rem;
+        padding-bottom: 0.25rem;
+        padding-left: 0.75rem;
+    }
+    .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        transition: all 150ms;
+    }
+</style>
+
+<div class="space-y-1">
+    <a href="{% url 'dashboard:main' %}" class="nav-item {% active_link '^/$' %}">
+        <span>🏠</span>
+        <span>Dashboard</span>
+    </a>
+    
+    <div class="nav-group-label">Environmental</div>
+    <a href="{% url 'environmental:emissions' %}" class="nav-item {% active_link '/environmental/emissions' %}">
+        <span>📉</span>
+        <span>Emission Tracking</span>
+    </a>
+    <a href="{% url 'environmental:goals' %}" class="nav-item {% active_link '/environmental/goals' %}">
+        <span>🎯</span>
+        <span>Goals & Targets</span>
+    </a>
+    <a href="{% url 'environmental:dashboard' %}" class="nav-item {% active_link '/environmental/dashboard' %}">
+        <span>📊</span>
+        <span>Env Dashboard</span>
+    </a>
+
+    <div class="nav-group-label">Social</div>
+    <a href="{% url 'social:csr' %}" class="nav-item {% active_link '/social/csr' %}">
+        <span>🤝</span>
+        <span>CSR Activities</span>
+    </a>
+    <a href="{% url 'social:diversity' %}" class="nav-item {% active_link '/social/diversity' %}">
+        <span>👥</span>
+        <span>Diversity Metrics</span>
+    </a>
+    <a href="{% url 'social:training' %}" class="nav-item {% active_link '/social/training' %}">
+        <span>📚</span>
+        <span>Training</span>
+    </a>
+
+    <div class="nav-group-label">Governance</div>
+    <a href="{% url 'governance:policies' %}" class="nav-item {% active_link '/governance/policies' %}">
+        <span>📜</span>
+        <span>Policies</span>
+    </a>
+    <a href="{% url 'governance:audits' %}" class="nav-item {% active_link '/governance/audits' %}">
+        <span>🔍</span>
+        <span>Audits</span>
+    </a>
+    <a href="{% url 'governance:issues' %}" class="nav-item {% active_link '/governance/issues' %}">
+        <span>⚠️</span>
+        <span>Compliance Issues</span>
+    </a>
+
+    <div class="nav-group-label">Gamification</div>
+    <a href="{% url 'gamification:challenges' %}" class="nav-item {% active_link '/gamification/challenges' %}">
+        <span>🏆</span>
+        <span>Challenges</span>
+    </a>
+    <a href="{% url 'gamification:badges' %}" class="nav-item {% active_link '/gamification/badges' %}">
+        <span>🏅</span>
+        <span>Badges</span>
+    </a>
+    <a href="{% url 'gamification:rewards' %}" class="nav-item {% active_link '/gamification/rewards' %}">
+        <span>🎁</span>
+        <span>Rewards</span>
+    </a>
+    <a href="{% url 'gamification:leaderboard' %}" class="nav-item {% active_link '/gamification/leaderboard' %}">
+        <span>📈</span>
+        <span>Leaderboard</span>
+    </a>
+
+    <div class="nav-group-label">Reports</div>
+    <a href="{% url 'reports:environmental' %}" class="nav-item {% active_link '/reports/environmental' %}">
+        <span>📄</span>
+        <span>Environmental Report</span>
+    </a>
+    <a href="{% url 'reports:social' %}" class="nav-item {% active_link '/reports/social' %}">
+        <span>📄</span>
+        <span>Social Report</span>
+    </a>
+    <a href="{% url 'reports:governance' %}" class="nav-item {% active_link '/reports/governance' %}">
+        <span>📄</span>
+        <span>Governance Report</span>
+    </a>
+    <a href="{% url 'reports:summary' %}" class="nav-item {% active_link '/reports/summary' %}">
+        <span>📄</span>
+        <span>ESG Summary</span>
+    </a>
+    <a href="{% url 'reports:custom' %}" class="nav-item {% active_link '/reports/custom' %}">
+        <span>🛠️</span>
+        <span>Custom Report Builder</span>
+    </a>
+
+    {% if user.is_authenticated and user.profile.role in 'super_admin,esg_manager' %}
+        <div class="nav-group-label">Settings</div>
+        <a href="{% url 'core:departments' %}" class="nav-item {% active_link '/core/departments' %}">
+            <span>🏢</span>
+            <span>Departments</span>
+        </a>
+        <a href="{% url 'core:categories' %}" class="nav-item {% active_link '/core/categories' %}">
+            <span>🏷️</span>
+            <span>Categories</span>
+        </a>
+        <a href="{% url 'core:esg-config' %}" class="nav-item {% active_link '/core/esg-config' %}">
+            <span>⚙️</span>
+            <span>ESG Configuration</span>
+        </a>
+        <a href="{% url 'notifications:settings' %}" class="nav-item {% active_link '/notifications/settings' %}">
+            <span>🔔</span>
+            <span>Notification Settings</span>
+        </a>
+    {% endif %}
+</div>

@@ -1,0 +1,21 @@
+{% if status == 'active' or status == 'approved' or status == 'completed' or status == 'resolved' or status == 'on_track' %}
+    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-500/10 text-green-400 border border-green-500/20">
+        {{ status|title|cut:"_" }}
+    </span>
+{% elif status == 'overdue' or status == 'rejected' or status == 'critical' or status == 'high' %}
+    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-500/10 text-red-400 border border-red-500/20">
+        {{ status|title|cut:"_" }}
+    </span>
+{% elif status == 'pending' or status == 'in_progress' or status == 'pending_review' or status == 'under_review' or status == 'medium' %}
+    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+        {{ status|title|replace_underscore }}
+    </span>
+{% elif status == 'draft' or status == 'upcoming' or status == 'enrolled' or status == 'low' %}
+    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">
+        {{ status|title|cut:"_" }}
+    </span>
+{% else %}
+    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-800 text-gray-400 border border-gray-700">
+        {{ status|title|cut:"_" }}
+    </span>
+{% endif %}
