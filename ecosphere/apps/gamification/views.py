@@ -180,3 +180,19 @@ class LeaderboardView(LoginRequiredMixin, TemplateView):
         context['dept_leaderboard'] = DepartmentESGScore.objects.select_related('department').order_by('-overall_score')
 
         return context
+
+class ChallengeTransitionView(LoginRequiredMixin, RoleRequiredMixin, View):
+    allowed_roles = ['super_admin', 'esg_manager']
+
+    def post(self, request, pk):
+        challenge = get_object_or_404(Challenge, pk=pk)
+        new_status = request.POST.get('status', '').strip()
+
+        from apps.gamification.services_lifecycle import ChallengeService
+        try:
+            ChallengeService.transition_challenge(challenge, new_status, actor=request.user)
+            messages.success(request, f"Challenge status updated to '{new_status}' successfully!")
+        except ValueError as e:
+            messages.error(request, str(e))
+
+        return redirect('gamification:challenges')

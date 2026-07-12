@@ -1,8 +1,8 @@
 from django.urls import path
 from .views import (
     ChallengeListView, ChallengeCreateView, ChallengeEnrolView, ChallengeSubmitEvidenceView,
-    BadgeListView, BadgeCreateView, RewardListView, RewardCreateView, RewardRedeemView,
-    LeaderboardView
+    ChallengeTransitionView, BadgeListView, BadgeCreateView, RewardListView, RewardCreateView,
+    RewardRedeemView, LeaderboardView
 )
 
 app_name = 'gamification'
@@ -13,6 +13,7 @@ urlpatterns = [
     path('challenges/add/', ChallengeCreateView.as_view(), name='challenge-add'),
     path('challenges/<int:pk>/enrol/', ChallengeEnrolView.as_view(), name='enrol'),
     path('challenges/enrolment/<int:pk>/submit/', ChallengeSubmitEvidenceView.as_view(), name='submit'),
+    path('challenges/<int:pk>/transition/', ChallengeTransitionView.as_view(), name='challenge-transition'),
     
     # Badges
     path('badges/', BadgeListView.as_view(), name='badges'),

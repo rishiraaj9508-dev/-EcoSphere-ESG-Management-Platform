@@ -1,21 +1,50 @@
 {% extends "base.html" %}
 
-{% block title %}Notifications | EcoSphere{% endblock %}
+{% block title %}Notifications Center | EcoSphere{% endblock %}
 
 {% block breadcrumb %}Notifications{% endblock %}
 {% block page_title %}Notifications Center{% endblock %}
 
 {% block content %}
-<div class="bg-gray-900 border border-gray-800 rounded-xl p-8 text-center hover:border-gray-700 transition-all duration-300">
-    <div class="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center text-blue-400 text-3xl mx-auto mb-4">
-        🔔
+<div class="table-container p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider">In-App Notification Feed</h3>
+        <a href="{% url 'notifications:settings' %}" class="text-xs text-green-400 hover:text-green-300 font-semibold transition-colors">
+            ⚙ Preferences
+        </a>
     </div>
-    <h3 class="text-base font-bold text-white mb-2">Notification Center</h3>
-    <p class="text-xs text-gray-500 max-w-md mx-auto mb-6 leading-relaxed">
-        Read system updates, challenge completion alerts, and ESG manager feedback on submitted CSR evidence logs.
-    </p>
-    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-850 text-gray-400 border border-gray-700">
-        🚧 Work in Progress (Scheduled for B-Tier)
-    </span>
+
+    <div class="space-y-4">
+        {% for item in notifications %}
+            <div class="bg-gray-950 border border-gray-800 p-4 rounded-xl flex items-start justify-between gap-4 {% if not item.is_read %}border-l-4 border-l-green-500{% endif %} transition-all duration-300 hover:border-gray-700">
+                <div class="space-y-1 flex-1">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold text-gray-300">{{ item.title }}</span>
+                        <span class="text-[9px] bg-gray-900 border border-gray-800 text-gray-450 px-2 py-0.5 rounded font-mono font-medium">
+                            {{ item.event_type }}
+                        </span>
+                    </div>
+                    <p class="text-xs text-gray-450 leading-relaxed">{{ item.message }}</p>
+                    <span class="text-[10px] text-gray-500 font-medium block pt-1">{{ item.created_at|date:"M d, Y \a\t g:i a" }}</span>
+                </div>
+
+                {% if not item.is_read %}
+                    <form method="POST" action="{% url 'notifications:read' item.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="bg-gray-850 hover:bg-gray-800 text-gray-400 hover:text-white px-3 py-1.5 rounded-lg text-[10px] font-bold border border-gray-750 transition-colors min-h-[32px] flex items-center justify-center">
+                            Mark Read
+                        </button>
+                    </form>
+                {% else %}
+                    <span class="text-gray-650 text-xs italic">Read</span>
+                {% endif %}
+            </div>
+        {% empty %}
+            <div class="text-center py-12 text-gray-500 font-semibold bg-gray-950 border border-gray-800 rounded-xl">
+                <span>🔕</span>
+                <p class="text-xs mt-2">Your notification feed is completely clear!</p>
+            </div>
+        {% endfor %}
+    </div>
 </div>
 {% endblock %}

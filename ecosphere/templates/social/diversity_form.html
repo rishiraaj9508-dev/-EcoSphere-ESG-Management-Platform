@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Log Diversity Metric | EcoSphere{% endblock %}
+
+{% block breadcrumb %}Social / Diversity{% endblock %}
+{% block page_title %}Log Diversity Metric{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-lg">
+    <form method="POST" class="space-y-5">
+        {% csrf_token %}
+        
+        {% if form.errors %}
+            <div class="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-lg text-xs font-semibold space-y-1">
+                {% for field, errors in form.errors.items %}
+                    <p>{{ field|capfirst }}: {{ errors|striptags }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Department -->
+        <div>
+            <label for="id_department" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Department</label>
+            <select name="department" id="id_department" required 
+                class="appearance-none block w-full px-3 py-2.5 bg-gray-950 border border-gray-800 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500">
+                {% for choice in form.fields.department.queryset %}
+                    <option value="{{ choice.pk }}" {% if form.instance.department.pk == choice.pk %}selected{% endif %}>
+                        {{ choice.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Metric Type -->
+        <div>
+            <label for="id_metric_type" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Metric Type / Classification</label>
+            <input type="text" name="metric_type" id="id_metric_type" required maxlength="100"
+                class="block w-full px-3 py-2.5 bg-gray-950 border border-gray-800 rounded-lg text-white text-sm placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500" 
+                placeholder="e.g. Female Representation, Age Group Under 30"
+                value="{{ form.instance.metric_type|default:'' }}">
+        </div>
+
+        <!-- Value & Unit Row -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label for="id_value" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Value</label>
+                <input type="number" step="0.0001" name="value" id="id_value" required
+                    class="block w-full px-3 py-2.5 bg-gray-950 border border-gray-800 rounded-lg text-white text-sm placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500" 
+                    placeholder="e.g. 45.5"
+                    value="{{ form.instance.value|default:'' }}">
+            </div>
+            <div>
+                <label for="id_unit" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Unit</label>
+                <input type="text" name="unit" id="id_unit" required maxlength="50"
+                    class="block w-full px-3 py-2.5 bg-gray-950 border border-gray-800 rounded-lg text-white text-sm placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500" 
+                    placeholder="e.g. %, count"
+                    value="{{ form.instance.unit|default:'%' }}">
+            </div>
+        </div>
+
+        <!-- Reporting Period -->
+        <div>
+            <label for="id_reporting_period" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Reporting Period (Date)</label>
+            <input type="date" name="reporting_period" id="id_reporting_period" required
+                class="block w-full px-3 py-2.5 bg-gray-950 border border-gray-800 rounded-lg text-white text-sm placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                value="{{ form.instance.reporting_period|date:'Y-m-d'|default:'' }}">
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex gap-3 justify-end pt-4 border-t border-gray-800">
+            <button type="submit" 
+                class="px-5 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold text-xs transition-colors shadow-lg shadow-green-500/10 min-h-[40px]">
+                Save Metric
+            </button>
+            <a href="{% url 'social:diversity' %}" 
+                class="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg font-semibold text-xs transition-colors border border-gray-700 text-center min-h-[40px] flex items-center justify-center">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

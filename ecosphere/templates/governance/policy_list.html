@@ -1,21 +1,113 @@
 {% extends "base.html" %}
+{% load core_tags %}
 
 {% block title %}Policies | EcoSphere{% endblock %}
 
 {% block breadcrumb %}Governance{% endblock %}
-{% block page_title %}ESG Policies & Codes of Conduct{% endblock %}
+{% block page_title %}ESG Policies & Acknowledgement Tracking{% endblock %}
 
 {% block content %}
-<div class="bg-gray-900 border border-gray-800 rounded-xl p-8 text-center hover:border-gray-700 transition-all duration-300">
-    <div class="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center text-blue-400 text-3xl mx-auto mb-4">
-        📜
+<!-- Tabs Header -->
+<div class="flex items-center justify-between mb-6 border-b border-gray-800 pb-4">
+    <div class="flex items-center gap-1 bg-gray-900 p-1 rounded-lg border border-gray-800 text-xs font-semibold">
+        <a href="{% url 'governance:policies' %}" class="px-4 py-2 bg-green-500/10 text-green-400 font-medium rounded-md border border-green-500/20">
+            ESG Policies
+        </a>
+        <a href="{% url 'governance:audits' %}" class="px-4 py-2 text-gray-400 hover:text-white transition-colors rounded-md">
+            Audits Tracker
+        </a>
+        <a href="{% url 'governance:issues' %}" class="px-4 py-2 text-gray-400 hover:text-white transition-colors rounded-md">
+            Compliance Issues
+        </a>
     </div>
-    <h3 class="text-base font-bold text-white mb-2">ESG Policies</h3>
-    <p class="text-xs text-gray-500 max-w-md mx-auto mb-6 leading-relaxed">
-        Publish organizational ESG guidelines, track compliance, and record employee policy acknowledgements.
-    </p>
-    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-850 text-gray-400 border border-gray-700">
-        🚧 Work in Progress (Scheduled for B-Tier)
-    </span>
+
+    {% if user.profile.role in 'super_admin,esg_manager' %}
+        <a href="{% url 'governance:policy-add' %}" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold text-xs transition-colors shadow-lg shadow-green-500/10 min-h-[40px] flex items-center justify-center">
+            + Define Policy
+        </a>
+    {% endif %}
+</div>
+
+<!-- Policies Table -->
+<div class="table-container p-6">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider">Active & Draft Policies</h3>
+        <span class="text-xs text-gray-500 font-medium">Policies count: {{ policies.count }}</span>
+    </div>
+
+    <table class="esg-table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Version</th>
+                <th>Category</th>
+                <th>Effective Date</th>
+                <th>Review Cycle</th>
+                <th>Status</th>
+                <th>My Acknowledgement</th>
+                <th class="text-right">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in policies %}
+                {% with is_acknowledged=item.pk|is_in_list:acknowledged_ids %}
+                <tr>
+                    <td class="font-semibold text-white">
+                        {{ item.title }}
+                        {% if item.parent_policy %}
+                            <span class="text-[9px] text-gray-500 ml-1">(supersedes v{{ item.parent_policy.version }})</span>
+                        {% endif %}
+                    </td>
+                    <td>v{{ item.version }}</td>
+                    <td>{{ item.category.name|default:"General" }}</td>
+                    <td>{{ item.effective_date|date:"M d, Y" }}</td>
+                    <td>{{ item.review_cycle }} days</td>
+                    <td>
+                        {% include 'partials/status_badge.html' with status=item.status %}
+                    </td>
+                    <td>
+                        {% if item.status == 'active' %}
+                            {% if is_acknowledged %}
+                                <span class="text-green-400 text-xs font-bold flex items-center gap-1">✓ Acknowledged</span>
+                            {% else %}
+                                <form method="POST" action="{% url 'governance:policy-acknowledge' item.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold px-3 py-1.5 rounded transition-colors min-h-[30px]">
+                                        Acknowledge
+                                    </button>
+                                </form>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-gray-600 text-xs italic">N/A</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-right flex items-center justify-end gap-2">
+                        {% if user.profile.role in 'super_admin,esg_manager' %}
+                            {% if item.status == 'draft' %}
+                                <form method="POST" action="{% url 'governance:policy-publish' item.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="text-xs text-green-400 hover:text-green-300 font-semibold px-2 py-1 rounded hover:bg-green-500/10 transition-colors">
+                                        Publish
+                                    </button>
+                                </form>
+                            {% elif item.status == 'active' %}
+                                <form method="POST" action="{% url 'governance:policy-new-version' item.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="text-xs text-blue-400 hover:text-blue-300 font-semibold px-2 py-1 rounded hover:bg-blue-500/10 transition-colors">
+                                        New Version
+                                    </button>
+                                </form>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endwith %}
+            {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center py-8 text-gray-500 font-medium">No policies found.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% endblock %}

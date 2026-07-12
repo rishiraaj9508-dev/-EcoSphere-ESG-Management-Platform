@@ -42,6 +42,10 @@
     </a>
 
     <div class="nav-group-label">Social</div>
+    <a href="{% url 'social:dashboard' %}" class="nav-item {% active_link '/social/dashboard' %}">
+        <span>📊</span>
+        <span>Social Dashboard</span>
+    </a>
     <a href="{% url 'social:csr' %}" class="nav-item {% active_link '/social/csr' %}">
         <span>🤝</span>
         <span>CSR Activities</span>
@@ -56,6 +60,10 @@
     </a>
 
     <div class="nav-group-label">Governance</div>
+    <a href="{% url 'governance:dashboard' %}" class="nav-item {% active_link '/governance/dashboard' %}">
+        <span>📊</span>
+        <span>Gov Dashboard</span>
+    </a>
     <a href="{% url 'governance:policies' %}" class="nav-item {% active_link '/governance/policies' %}">
         <span>📜</span>
         <span>Policies</span>

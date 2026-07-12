@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load core_tags %}
 
 {% block title %}Compliance Issues | EcoSphere{% endblock %}
 
@@ -6,16 +7,101 @@
 {% block page_title %}ESG Compliance Issues & Remediation{% endblock %}
 
 {% block content %}
-<div class="bg-gray-900 border border-gray-800 rounded-xl p-8 text-center hover:border-gray-700 transition-all duration-300">
-    <div class="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center text-red-400 text-3xl mx-auto mb-4">
-        ⚠️
+<!-- Tabs Header -->
+<div class="flex items-center justify-between mb-6 border-b border-gray-800 pb-4">
+    <div class="flex items-center gap-1 bg-gray-900 p-1 rounded-lg border border-gray-800 text-xs font-semibold">
+        <a href="{% url 'governance:policies' %}" class="px-4 py-2 text-gray-400 hover:text-white transition-colors rounded-md">
+            ESG Policies
+        </a>
+        <a href="{% url 'governance:audits' %}" class="px-4 py-2 text-gray-400 hover:text-white transition-colors rounded-md">
+            Audits Tracker
+        </a>
+        <a href="{% url 'governance:issues' %}" class="px-4 py-2 bg-green-500/10 text-green-400 font-medium rounded-md border border-green-500/20">
+            Compliance Issues
+        </a>
     </div>
-    <h3 class="text-base font-bold text-white mb-2">Compliance Issues</h3>
-    <p class="text-xs text-gray-500 max-w-md mx-auto mb-6 leading-relaxed">
-        Log regulation violations, assign department owners, set deadlines, and track resolution progress.
-    </p>
-    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-850 text-gray-400 border border-gray-700">
-        🚧 Work in Progress (Scheduled for B-Tier)
-    </span>
+
+    {% if user.profile.role in 'super_admin,esg_manager' %}
+        <a href="{% url 'governance:issue-add' %}" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold text-xs transition-colors shadow-lg shadow-green-500/10 min-h-[40px] flex items-center justify-center">
+            + Log Violation
+        </a>
+    {% endif %}
+</div>
+
+<!-- Issues Table -->
+<div class="table-container p-6">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider">Logged Violations & Resolutions</h3>
+        <span class="text-xs text-gray-500 font-medium">Issues: {{ issues.count }}</span>
+    </div>
+
+    <table class="esg-table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Department</th>
+                <th>Owner</th>
+                <th>Due Date</th>
+                <th>Severity</th>
+                <th>Status</th>
+                <th class="text-right">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in issues %}
+                <tr class="{% if item.is_overdue and item.status == 'open' %}bg-red-500/5{% endif %}">
+                    <td class="font-semibold text-white">
+                        {{ item.title }}
+                        {% if item.is_overdue and item.status == 'open' %}
+                            <span class="ml-2 text-[9px] bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">Overdue</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ item.department.name }}</td>
+                    <td class="text-gray-400">{{ item.owner.username }}</td>
+                    <td>
+                        <span class="{% if item.is_overdue and item.status == 'open' %}text-red-400 font-bold{% endif %}">
+                            {{ item.due_date|date:"M d, Y" }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if item.severity == 'critical' %}
+                            <span class="text-red-400 text-xs font-bold uppercase">Critical</span>
+                        {% elif item.severity == 'major' %}
+                            <span class="text-orange-400 text-xs font-bold uppercase">Major</span>
+                        {% else %}
+                            <span class="text-yellow-400 text-xs font-bold uppercase">Minor</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% include 'partials/status_badge.html' with status=item.status %}
+                    </td>
+                    <td class="text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            {% if item.status == 'open' %}
+                                {% if user == item.owner or user.profile.role in 'super_admin,esg_manager' %}
+                                    <form method="POST" action="{% url 'governance:issue-resolve' item.pk %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white text-[10px] font-bold px-3 py-1.5 rounded transition-colors min-h-[30px]">
+                                            Resolve
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            {% endif %}
+                            
+                            {% if user.profile.role in 'super_admin,esg_manager,dept_head' %}
+                                <a href="{% url 'governance:issue-edit' item.pk %}" class="text-xs text-gray-400 hover:text-white font-semibold px-2 py-1 rounded hover:bg-gray-800 transition-colors">
+                                    Edit
+                                </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-8 text-gray-500 font-medium">No compliance issues logged.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% endblock %}

@@ -3,19 +3,72 @@
 {% block title %}Social Report | EcoSphere{% endblock %}
 
 {% block breadcrumb %}Reports{% endblock %}
-{% block page_title %}Social ESG Disclosures{% endblock %}
+{% block page_title %}Social ESG Disclosures Generator{% endblock %}
 
 {% block content %}
-<div class="bg-gray-900 border border-gray-800 rounded-xl p-8 text-center hover:border-gray-700 transition-all duration-300">
-    <div class="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center text-blue-400 text-3xl mx-auto mb-4">
-        📄
-    </div>
-    <h3 class="text-base font-bold text-white mb-2">Social Reports</h3>
-    <p class="text-xs text-gray-500 max-w-md mx-auto mb-6 leading-relaxed">
-        Generate CSR activities involvement logs, diversity and inclusion indexes, and training metrics reports.
-    </p>
-    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-850 text-gray-400 border border-gray-700">
-        🚧 Work in Progress (Scheduled for B-Tier)
-    </span>
+<div class="max-w-2xl mx-auto bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-lg">
+    <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-6 pb-2 border-b border-gray-800">
+        Export Social & Labor Performance Metrics
+    </h3>
+    <form method="POST" class="space-y-5">
+        {% csrf_token %}
+
+        <!-- Date Range -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label for="id_date_from" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Date From</label>
+                <input type="date" name="date_from" id="id_date_from" required
+                    class="block w-full px-3 py-2.5 bg-gray-950 border border-gray-800 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500">
+            </div>
+            <div>
+                <label for="id_date_to" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Date To</label>
+                <input type="date" name="date_to" id="id_date_to" required
+                    class="block w-full px-3 py-2.5 bg-gray-950 border border-gray-800 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500">
+            </div>
+        </div>
+
+        <!-- Departments Multi-select -->
+        <div>
+            <label for="id_departments" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Scope Departments (leave empty for all)</label>
+            <select name="departments" id="id_departments" multiple size="4"
+                class="block w-full px-3 py-2 bg-gray-950 border border-gray-800 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500">
+                {% for dept in departments %}
+                    <option value="{{ dept.pk }}">{{ dept.name }}</option>
+                {% endfor %}
+            </select>
+            <span class="text-[10px] text-gray-500 font-medium mt-1.5 block">Hold Ctrl (or Cmd) to select multiple departments.</span>
+        </div>
+
+        <!-- Export Format -->
+        <div>
+            <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Export File Format</label>
+            <div class="flex gap-4">
+                <label class="flex items-center text-xs text-gray-300 font-semibold cursor-pointer">
+                    <input type="radio" name="format" value="csv" checked class="h-4 w-4 text-green-500 focus:ring-green-500 border-gray-800 bg-gray-950 mr-2">
+                    CSV (Comma Separated)
+                </label>
+                <label class="flex items-center text-xs text-gray-300 font-semibold cursor-pointer">
+                    <input type="radio" name="format" value="excel" class="h-4 w-4 text-green-500 focus:ring-green-500 border-gray-800 bg-gray-950 mr-2">
+                    Excel Spreadsheet (.xlsx)
+                </label>
+                <label class="flex items-center text-xs text-gray-300 font-semibold cursor-pointer">
+                    <input type="radio" name="format" value="pdf" class="h-4 w-4 text-green-500 focus:ring-green-500 border-gray-800 bg-gray-950 mr-2">
+                    PDF Booklet Document
+                </label>
+            </div>
+        </div>
+
+        <!-- Submit Buttons -->
+        <div class="flex gap-3 justify-end pt-4 border-t border-gray-800">
+            <button type="submit" 
+                class="px-5 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold text-xs transition-colors shadow-lg shadow-green-500/10 min-h-[40px]">
+                Generate Report
+            </button>
+            <a href="{% url 'dashboard:dashboard' %}" 
+                class="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg font-semibold text-xs transition-colors border border-gray-700 text-center min-h-[40px] flex items-center justify-center">
+                Back to Dashboard
+            </a>
+        </div>
+    </form>
 </div>
 {% endblock %}

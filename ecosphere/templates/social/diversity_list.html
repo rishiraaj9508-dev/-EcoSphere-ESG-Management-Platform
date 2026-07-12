@@ -6,16 +6,61 @@
 {% block page_title %}Diversity & Inclusion Metrics{% endblock %}
 
 {% block content %}
-<div class="bg-gray-900 border border-gray-800 rounded-xl p-8 text-center hover:border-gray-700 transition-all duration-300">
-    <div class="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center text-blue-400 text-3xl mx-auto mb-4">
-        👥
+<!-- Tabs Header -->
+<div class="flex items-center justify-between mb-6 border-b border-gray-800 pb-4">
+    <div class="flex items-center gap-1 bg-gray-900 p-1 rounded-lg border border-gray-800 text-xs font-semibold">
+        <a href="{% url 'social:csr' %}" class="px-4 py-2 text-gray-400 hover:text-white transition-colors rounded-md">
+            CSR Activities
+        </a>
+        <a href="{% url 'social:diversity' %}" class="px-4 py-2 bg-green-500/10 text-green-400 font-medium rounded-md border border-green-500/20">
+            Diversity Metrics
+        </a>
+        <a href="{% url 'social:training' %}" class="px-4 py-2 text-gray-400 hover:text-white transition-colors rounded-md">
+            Trainings
+        </a>
     </div>
-    <h3 class="text-base font-bold text-white mb-2">Diversity & Inclusion Hub</h3>
-    <p class="text-xs text-gray-500 max-w-md mx-auto mb-6 leading-relaxed">
-        This workspace displays department demographics, gender ratio indicators, and age group distributions.
-    </p>
-    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-850 text-gray-400 border border-gray-700">
-        🚧 Work in Progress (Scheduled for C-Tier)
-    </span>
+
+    {% if user.profile.role in 'super_admin,esg_manager' %}
+        <a href="{% url 'social:diversity-add' %}" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold text-xs transition-colors shadow-lg shadow-green-500/10 min-h-[40px] flex items-center justify-center">
+            + Log Metric
+        </a>
+    {% endif %}
+</div>
+
+<!-- Metrics Table -->
+<div class="table-container p-6">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider">Demographic Metrics</h3>
+        <span class="text-xs text-gray-500 font-medium">Logged records: {{ metrics.count }}</span>
+    </div>
+
+    <table class="esg-table">
+        <thead>
+            <tr>
+                <th>Reporting Period</th>
+                <th>Department</th>
+                <th>Metric Category</th>
+                <th>Value</th>
+                <th>Unit</th>
+                <th>Created At</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in metrics %}
+                <tr>
+                    <td class="font-semibold text-white">{{ item.reporting_period|date:"M Y" }}</td>
+                    <td>{{ item.department.name }}</td>
+                    <td class="font-medium text-gray-300">{{ item.metric_type }}</td>
+                    <td class="font-bold text-green-400">{{ item.value }}</td>
+                    <td class="text-gray-450">{{ item.unit }}</td>
+                    <td>{{ item.created_at|date:"M d, Y" }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-8 text-gray-500 font-medium">No diversity metrics logged.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% endblock %}

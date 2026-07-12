@@ -1,21 +1,79 @@
 {% extends "base.html" %}
+{% load core_tags %}
 
-{% block title %}Audits | EcoSphere{% endblock %}
+{% block title %}Audits Tracker | EcoSphere{% endblock %}
 
 {% block breadcrumb %}Governance{% endblock %}
-{% block page_title %}Internal & External ESG Audits{% endblock %}
+{% block page_title %}Governance ESG Audits{% endblock %}
 
 {% block content %}
-<div class="bg-gray-900 border border-gray-800 rounded-xl p-8 text-center hover:border-gray-700 transition-all duration-300">
-    <div class="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center text-blue-400 text-3xl mx-auto mb-4">
-        🔍
+<!-- Tabs Header -->
+<div class="flex items-center justify-between mb-6 border-b border-gray-800 pb-4">
+    <div class="flex items-center gap-1 bg-gray-900 p-1 rounded-lg border border-gray-800 text-xs font-semibold">
+        <a href="{% url 'governance:policies' %}" class="px-4 py-2 text-gray-400 hover:text-white transition-colors rounded-md">
+            ESG Policies
+        </a>
+        <a href="{% url 'governance:audits' %}" class="px-4 py-2 bg-green-500/10 text-green-400 font-medium rounded-md border border-green-500/20">
+            Audits Tracker
+        </a>
+        <a href="{% url 'governance:issues' %}" class="px-4 py-2 text-gray-400 hover:text-white transition-colors rounded-md">
+            Compliance Issues
+        </a>
     </div>
-    <h3 class="text-base font-bold text-white mb-2">ESG Audits</h3>
-    <p class="text-xs text-gray-500 max-w-md mx-auto mb-6 leading-relaxed">
-        Schedule compliance audits, document assessor findings, and track resolutions.
-    </p>
-    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-850 text-gray-400 border border-gray-700">
-        🚧 Work in Progress (Scheduled for B-Tier)
-    </span>
+
+    {% if user.profile.role in 'super_admin,esg_manager' %}
+        <a href="{% url 'governance:audit-add' %}" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold text-xs transition-colors shadow-lg shadow-green-500/10 min-h-[40px] flex items-center justify-center">
+            + Schedule Audit
+        </a>
+    {% endif %}
+</div>
+
+<!-- Audits Table -->
+<div class="table-container p-6">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider">Scheduled & Completed Audits</h3>
+        <span class="text-xs text-gray-500 font-medium">Audits count: {{ audits.count }}</span>
+    </div>
+
+    <table class="esg-table">
+        <thead>
+            <tr>
+                <th>Audit Title</th>
+                <th>Department</th>
+                <th>Auditor</th>
+                <th>Audit Date</th>
+                <th>Status</th>
+                <th>Findings summary</th>
+                <th class="text-right">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in audits %}
+                <tr>
+                    <td class="font-semibold text-white">{{ item.title }}</td>
+                    <td>{{ item.department.name }}</td>
+                    <td class="text-gray-400">{{ item.auditor }}</td>
+                    <td>{{ item.audit_date|date:"M d, Y" }}</td>
+                    <td>
+                        {% include 'partials/status_badge.html' with status=item.status %}
+                    </td>
+                    <td class="text-xs text-gray-400 truncate max-w-xs">{{ item.findings|default:"No findings logged." }}</td>
+                    <td class="text-right">
+                        {% if user.profile.role in 'super_admin,esg_manager' %}
+                            <a href="{% url 'governance:audit-edit' item.pk %}" class="text-xs text-green-400 hover:text-green-300 font-semibold px-2 py-1 rounded hover:bg-green-500/10 transition-colors">
+                                Edit
+                            </a>
+                        {% else %}
+                            <span class="text-gray-600 text-xs italic">N/A</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-8 text-gray-500 font-medium">No audits scheduled.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% endblock %}

@@ -1,21 +1,85 @@
 {% extends "base.html" %}
 
-{% block title %}Training Tracking | EcoSphere{% endblock %}
+{% block title %}Trainings | EcoSphere{% endblock %}
 
 {% block breadcrumb %}Social{% endblock %}
-{% block page_title %}Employee ESG Trainings & Development{% endblock %}
+{% block page_title %}ESG Trainings & Certifications{% endblock %}
 
 {% block content %}
-<div class="bg-gray-900 border border-gray-800 rounded-xl p-8 text-center hover:border-gray-700 transition-all duration-300">
-    <div class="w-16 h-16 bg-purple-500/10 rounded-full flex items-center justify-center text-purple-400 text-3xl mx-auto mb-4">
-        📚
+<!-- Tabs Header -->
+<div class="flex items-center justify-between mb-6 border-b border-gray-800 pb-4">
+    <div class="flex items-center gap-1 bg-gray-900 p-1 rounded-lg border border-gray-800 text-xs font-semibold">
+        <a href="{% url 'social:csr' %}" class="px-4 py-2 text-gray-400 hover:text-white transition-colors rounded-md">
+            CSR Activities
+        </a>
+        <a href="{% url 'social:diversity' %}" class="px-4 py-2 text-gray-400 hover:text-white transition-colors rounded-md">
+            Diversity Metrics
+        </a>
+        <a href="{% url 'social:training' %}" class="px-4 py-2 bg-green-500/10 text-green-400 font-medium rounded-md border border-green-500/20">
+            Trainings
+        </a>
     </div>
-    <h3 class="text-base font-bold text-white mb-2">ESG Training Tracking</h3>
-    <p class="text-xs text-gray-500 max-w-md mx-auto mb-6 leading-relaxed">
-        Record employee training completion, track training hours, and generate training indicators for scoring calculations here.
-    </p>
-    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-850 text-gray-400 border border-gray-700">
-        🚧 Work in Progress (Scheduled for C-Tier)
-    </span>
+
+    {% if user.profile.role in 'super_admin,esg_manager,dept_head' %}
+        <a href="{% url 'social:training-add' %}" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold text-xs transition-colors shadow-lg shadow-green-500/10 min-h-[40px] flex items-center justify-center">
+            + Schedule Training
+        </a>
+    {% endif %}
+</div>
+
+<!-- Completions / Assignments Table -->
+<div class="table-container p-6">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider">My Training Assignments</h3>
+        <span class="text-xs text-gray-500 font-medium">Assigned: {{ completions.count }}</span>
+    </div>
+
+    <table class="esg-table">
+        <thead>
+            <tr>
+                <th>Training Program</th>
+                <th>Department</th>
+                <th>Scheduled Date</th>
+                <th>Employee / Participant</th>
+                <th>Status</th>
+                <th class="text-right">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in completions %}
+                <tr>
+                    <td class="font-semibold text-white">{{ item.training.title }}</td>
+                    <td>{{ item.training.department.name }}</td>
+                    <td>{{ item.training.training_date|date:"M d, Y" }}</td>
+                    <td class="text-gray-400">{{ item.employee.username }}</td>
+                    <td>
+                        {% if item.completed %}
+                            <span class="px-2 py-0.5 text-[10px] font-bold bg-green-500/20 text-green-400 border border-green-500/30 rounded-full">Completed</span>
+                        {% else %}
+                            <span class="px-2 py-0.5 text-[10px] font-bold bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded-full">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-right">
+                        {% if not item.completed %}
+                            {% if user == item.employee or user.profile.role in 'super_admin,esg_manager,dept_head' %}
+                                <form method="POST" action="{% url 'social:training-complete' item.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold px-3 py-1.5 rounded transition-colors min-h-[30px]">
+                                        Mark Completed
+                                    </button>
+                                </form>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-green-400 text-xs font-bold">✓ Complete</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-8 text-gray-500 font-medium">No training programs assigned.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% endblock %}

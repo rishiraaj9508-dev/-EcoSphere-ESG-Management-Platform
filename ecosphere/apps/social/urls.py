@@ -2,7 +2,8 @@ from django.urls import path
 from .views import (
     CSRActivityListView, CSRActivityCreateView, CSRActivityUpdateView,
     CSRActivityEnrolView, CSRParticipationSubmitView, CSRParticipationApproveView,
-    CSRParticipationRejectView, DiversityMetricListView, TrainingListView
+    CSRParticipationRejectView, DiversityMetricListView, DiversityMetricCreateView,
+    TrainingListView, TrainingCreateView, TrainingCompleteView, SocialDashboardView
 )
 
 app_name = 'social'
@@ -17,7 +18,15 @@ urlpatterns = [
     path('csr/participation/<int:pk>/approve/', CSRParticipationApproveView.as_view(), name='csr-approve'),
     path('csr/participation/<int:pk>/reject/', CSRParticipationRejectView.as_view(), name='csr-reject'),
     
-    # Stubs for clean routing
+    # Diversity
     path('diversity/', DiversityMetricListView.as_view(), name='diversity'),
+    path('diversity/add/', DiversityMetricCreateView.as_view(), name='diversity-add'),
+
+    # Training
     path('training/', TrainingListView.as_view(), name='training'),
+    path('training/add/', TrainingCreateView.as_view(), name='training-add'),
+    path('training/complete/<int:pk>/', TrainingCompleteView.as_view(), name='training-complete'),
+
+    # Social Dashboard
+    path('dashboard/', SocialDashboardView.as_view(), name='dashboard'),
 ]

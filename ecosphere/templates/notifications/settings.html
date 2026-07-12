@@ -6,16 +6,67 @@
 {% block page_title %}Notification Preferences Settings{% endblock %}
 
 {% block content %}
-<div class="bg-gray-900 border border-gray-800 rounded-xl p-8 text-center hover:border-gray-700 transition-all duration-300">
-    <div class="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center text-blue-400 text-3xl mx-auto mb-4">
-        🔔
-    </div>
-    <h3 class="text-base font-bold text-white mb-2">Notification Settings</h3>
-    <p class="text-xs text-gray-500 max-w-md mx-auto mb-6 leading-relaxed">
-        Configure email dispatch alerts, in-app notification triggers, and sound preference overrides here.
-    </p>
-    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-850 text-gray-400 border border-gray-700">
-        🚧 Work in Progress (Scheduled for B-Tier)
-    </span>
+<div class="max-w-2xl mx-auto bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-lg">
+    <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-6 pb-2 border-b border-gray-800">
+        Choose how we alert you
+    </h3>
+    <form method="POST" class="space-y-6">
+        {% csrf_token %}
+
+        <div class="space-y-4">
+            {% for pref in preferences %}
+                <div class="flex items-center justify-between gap-4 p-4 bg-gray-950 border border-gray-800 rounded-xl">
+                    <div class="flex-1">
+                        <span class="text-xs font-bold text-gray-300 block mb-1">
+                            {% if pref.event_type == 'POLICY_PUBLISHED' %}
+                                ESG Policy Releases
+                            {% elif pref.event_type == 'CHALLENGE_STATUS' %}
+                                Challenge Lifecycle Updates
+                            {% elif pref.event_type == 'BADGE_UNLOCKED' %}
+                                Badge Auto-Unlock Achievements
+                            {% elif pref.event_type == 'COMPLIANCE_ASSIGNED' %}
+                                Compliance Assignments
+                            {% elif pref.event_type == 'COMPLIANCE_OVERDUE' %}
+                                Compliance Overdue Warnings
+                            {% elif pref.event_type == 'GOAL_STATUS' %}
+                                Sustainability Goal Milestones
+                            {% else %}
+                                {{ pref.event_type }}
+                            {% endif %}
+                        </span>
+                        <span class="text-[10px] text-gray-500 font-medium">Triggers alerts for this category</span>
+                    </div>
+
+                    <div class="flex items-center gap-6">
+                        <!-- In-App Toggle -->
+                        <label class="flex items-center text-xs text-gray-300 font-semibold cursor-pointer">
+                            <input type="checkbox" name="in_app_{{ pref.event_type }}" {% if pref.in_app_enabled %}checked{% endif %}
+                                class="h-4 w-4 text-green-500 focus:ring-green-500 border-gray-800 rounded bg-gray-950 mr-2">
+                            In-App Feed
+                        </label>
+
+                        <!-- Email Toggle -->
+                        <label class="flex items-center text-xs text-gray-300 font-semibold cursor-pointer">
+                            <input type="checkbox" name="email_{{ pref.event_type }}" {% if pref.email_enabled %}checked{% endif %}
+                                class="h-4 w-4 text-green-500 focus:ring-green-500 border-gray-800 rounded bg-gray-950 mr-2">
+                            Email
+                        </label>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Submit Buttons -->
+        <div class="flex gap-3 justify-end pt-4 border-t border-gray-800">
+            <button type="submit" 
+                class="px-5 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold text-xs transition-colors shadow-lg shadow-green-500/10 min-h-[40px]">
+                Save Preferences
+            </button>
+            <a href="{% url 'notifications:list' %}" 
+                class="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg font-semibold text-xs transition-colors border border-gray-700 text-center min-h-[40px] flex items-center justify-center">
+                Back to Feed
+            </a>
+        </div>
+    </form>
 </div>
 {% endblock %}
