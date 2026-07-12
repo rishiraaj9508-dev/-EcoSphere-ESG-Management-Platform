@@ -6,6 +6,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.utils import timezone
 from django.db import models
+from django.core.serializers.json import DjangoJSONEncoder
+import json
 
 from apps.accounts.mixins import RoleRequiredMixin
 from apps.social.models import CSRActivity, CSRParticipation, Training, TrainingCompletion, DiversityMetric
