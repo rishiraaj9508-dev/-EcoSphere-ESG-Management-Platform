@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% load core_tags %}
+
+{% block title %}Emission Tracking | EcoSphere{% endblock %}
+
+{% block breadcrumb %}Environmental{% endblock %}
+{% block page_title %}Carbon Emission Tracking & Emission Factors{% endblock %}
+
+{% block content %}
+<!-- Tabs Header -->
+<div class="flex items-center justify-between mb-6 border-b border-gray-800 pb-4">
+    <div class="flex items-center gap-1 bg-gray-900 p-1 rounded-lg border border-gray-800 text-xs font-semibold">
+        <a href="{% url 'environmental:emissions' %}" class="px-4 py-2 bg-green-500/10 text-green-400 font-medium rounded-md border border-green-500/20">
+            Carbon Emissions
+        </a>
+        {% if user.profile.role in 'super_admin,esg_manager' %}
+            <a href="#factors-section" id="toggle-factors-tab" class="px-4 py-2 text-gray-400 hover:text-white transition-colors rounded-md">
+                Emission Factors
+            </a>
+        {% endif %}
+        <a href="{% url 'environmental:goals' %}" class="px-4 py-2 text-gray-400 hover:text-white transition-colors rounded-md">
+            Goals & Targets
+        </a>
+    </div>
+
+    <div class="flex items-center gap-3">
+        <a href="{% url 'environmental:emission-add' %}" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold text-xs transition-colors shadow-lg shadow-green-500/10 min-h-[40px] flex items-center justify-center">
+            + Log Carbon Data
+        </a>
+        {% if user.profile.role in 'super_admin,esg_manager' %}
+            <a href="{% url 'environmental:factor-add' %}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-xs transition-colors shadow-lg shadow-blue-500/10 min-h-[40px] flex items-center justify-center">
+                + Add Emission Factor
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Carbon Emissions Section -->
+<div id="emissions-section" class="space-y-6">
+    <div class="table-container p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider">Carbon Emissions Logs</h3>
+            <span class="text-xs text-gray-500 font-medium">Logged records: {{ emissions.count }}</span>
+        </div>
+
+        <table class="esg-table">
+            <thead>
+                <tr>
+                    <th>Emission Source</th>
+                    <th>Department</th>
+                    <th>Activity Value</th>
+                    <th>Factor Coefficient</th>
+                    <th>CO₂e Value</th>
+                    <th>Reporting Period</th>
+                    <th>Recalculate</th>
+                    <th class="text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in emissions %}
+                    <tr>
+                        <td class="font-semibold text-white">{{ item.emission_source }}</td>
+                        <td>{{ item.department.name }}</td>
+                        <td>{{ item.activity_value }} {{ item.emission_factor.unit }}</td>
+                        <td class="text-gray-400">{{ item.emission_factor.coefficient }} CO₂e/{{ item.emission_factor.unit }}</td>
+                        <td class="text-green-400 font-bold">{{ item.co2e_value }} kg</td>
+                        <td>{{ item.reporting_period|date:"F Y" }}</td>
+                        <td>
+                            {% if item.auto_recalculate %}
+                                <span class="px-2 py-0.5 rounded bg-green-500/10 text-green-400 font-semibold text-[10px] uppercase border border-green-500/20">Auto</span>
+                            {% else %}
+                                <span class="px-2 py-0.5 rounded bg-gray-800 text-gray-500 font-semibold text-[10px] uppercase border border-gray-700">Manual</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-right">
+                            <a href="{% url 'environmental:emission-edit' item.pk %}" class="text-xs text-green-400 hover:text-green-300 font-semibold px-2 py-1 rounded hover:bg-green-500/10 transition-colors">
+                                Edit
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-8 text-gray-500 font-medium">
+                            No carbon emission logs found. Click "+ Log Carbon Data" to create one.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Emission Factors Section (Toggled) -->
+{% if user.profile.role in 'super_admin,esg_manager' %}
+<div id="factors-section" class="space-y-6 hidden mt-6">
+    <div class="table-container p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider">Emission Factors Configuration</h3>
+            <span class="text-xs text-gray-500 font-medium">Factors count: {{ factors.count }}</span>
+        </div>
+
+        <table class="esg-table">
+            <thead>
+                <tr>
+                    <th>Factor Name</th>
+                    <th>Unit</th>
+                    <th>Coefficient (CO₂e)</th>
+                    <th>Status</th>
+                    <th class="text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in factors %}
+                    <tr>
+                        <td class="font-semibold text-white">{{ item.name }}</td>
+                        <td class="text-gray-400">{{ item.unit }}</td>
+                        <td class="text-white font-bold">{{ item.coefficient }} kg</td>
+                        <td>
+                            {% if item.is_active %}
+                                {% include 'partials/status_badge.html' with status='active' %}
+                            {% else %}
+                                {% include 'partials/status_badge.html' with status='inactive' %}
+                            {% endif %}
+                        </td>
+                        <td class="text-right">
+                            <a href="{% url 'environmental:factor-edit' item.pk %}" class="text-xs text-blue-400 hover:text-blue-300 font-semibold px-2 py-1 rounded hover:bg-blue-500/10 transition-colors">
+                                Edit
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-8 text-gray-500 font-medium">
+                            No emission factors configured. Click "+ Add Emission Factor" to create one.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const toggleBtn = document.getElementById('toggle-factors-tab');
+        const emissionsSec = document.getElementById('emissions-section');
+        const factorsSec = document.getElementById('factors-section');
+
+        toggleBtn?.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Toggle active classes on tab buttons
+            if (factorsSec.classList.contains('hidden')) {
+                factorsSec.classList.remove('hidden');
+                emissionsSec.classList.add('hidden');
+                
+                // Active Factor Tab Styling
+                toggleBtn.className = "px-4 py-2 bg-green-500/10 text-green-400 font-medium rounded-md border border-green-500/20";
+                e.target.previousElementSibling.className = "px-4 py-2 text-gray-400 hover:text-white transition-colors rounded-md";
+            } else {
+                factorsSec.classList.add('hidden');
+                emissionsSec.classList.remove('hidden');
+                
+                // Active Emissions Tab Styling
+                toggleBtn.className = "px-4 py-2 text-gray-400 hover:text-white transition-colors rounded-md";
+                e.target.previousElementSibling.className = "px-4 py-2 bg-green-500/10 text-green-400 font-medium rounded-md border border-green-500/20";
+            }
+        });
+    });
+</script>
+{% endblock %}

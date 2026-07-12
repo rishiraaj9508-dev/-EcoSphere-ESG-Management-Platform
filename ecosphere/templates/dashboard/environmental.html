@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Environmental Dashboard | EcoSphere{% endblock %}
+
+{% block breadcrumb %}Environmental{% endblock %}
+{% block page_title %}Environmental Module Dashboard ({{ dept_name }}){% endblock %}
+
+{% block content %}
+<!-- KPI Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-gray-700 transition-all duration-300">
+        <p class="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1">Total Carbon Footprint</p>
+        <div class="flex items-baseline gap-1.5">
+            <p class="text-3xl font-bold text-green-400">{{ total_co2e }}</p>
+            <span class="text-xs text-gray-500">kg CO₂e</span>
+        </div>
+        <p class="text-xs mt-2 text-gray-400 font-medium">Logged reporting emissions</p>
+    </div>
+    
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-gray-700 transition-all duration-300">
+        <p class="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1">Active Targets</p>
+        <div class="flex items-baseline gap-1.5">
+            <p class="text-3xl font-bold text-white">{{ goals.count }}</p>
+            <span class="text-xs text-gray-500">Goals</span>
+        </div>
+        <p class="text-xs mt-2 text-gray-400 font-medium">Sustainability goals tracked</p>
+    </div>
+
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-gray-700 transition-all duration-300">
+        <p class="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1">Quick Links</p>
+        <div class="flex flex-col gap-2 mt-1">
+            <a href="{% url 'environmental:emissions' %}" class="text-xs text-green-400 hover:text-green-300 font-semibold flex items-center gap-1">
+                <span>📊</span> View Emission Records
+            </a>
+            <a href="{% url 'environmental:goals' %}" class="text-xs text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1">
+                <span>🎯</span> View Target List
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="grid grid-cols-1 {% if is_scoped %}grid-cols-1{% else %}md:grid-cols-2{% endif %} gap-6 mb-6">
+    <!-- Time Series Emissions Chart -->
+    <div>
+        {% include 'partials/chart_card.html' with chart_id="emissionsTrendChart" chart_title="Carbon Emissions Time-Series Trend" %}
+    </div>
+
+    <!-- Department Comparison Chart (Hidden if department-scoped) -->
+    {% if not is_scoped %}
+    <div>
+        {% include 'partials/chart_card.html' with chart_id="deptEmissionsComparisonChart" chart_title="Carbon Emissions by Department" %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Goals Progress List -->
+<div class="bg-gray-900 border border-gray-800 rounded-xl p-6 hover:border-gray-700 transition-all duration-300">
+    <h3 class="text-sm font-semibold text-gray-300 mb-5 uppercase tracking-wider">Sustainability Goals Progress</h3>
+    <div class="space-y-4">
+        {% for item in goals %}
+            <div class="border-b border-gray-800 pb-4 last:border-b-0 last:pb-0">
+                <div class="flex justify-between items-center mb-2">
+                    <div>
+                        <span class="text-sm font-semibold text-white">{{ item.title }}</span>
+                        <span class="text-xs text-gray-500 ml-2">({{ item.target_metric }})</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        {% include 'partials/status_badge.html' with status=item.status %}
+                        <span class="text-xs text-gray-500 font-medium">Deadline: {{ item.deadline|date:"M d, Y" }}</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="w-full bg-gray-950 border border-gray-800 rounded-full h-2.5">
+                        <div class="bg-green-500 h-2.5 rounded-full transition-all duration-500" style="width: {{ item.progress_percentage }}%"></div>
+                    </div>
+                    <span class="text-xs font-bold text-green-400 w-12 text-right">{{ item.progress_percentage|floatformat:1 }}%</span>
+                </div>
+                <div class="flex justify-between mt-1 text-[10px] text-gray-500 font-medium">
+                    <span>Current: {{ item.current_value }} {{ item.unit }}</span>
+                    <span>Target: {{ item.target_value }} {{ item.unit }}</span>
+                </div>
+            </div>
+        {% empty %}
+            <p class="text-center py-6 text-gray-500 font-medium text-xs">No active sustainability targets logged.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const timeSeriesData = {{ time_series_data|safe }};
+        
+        // 1. Time-Series Trend Chart
+        const ctxTrend = document.getElementById('emissionsTrendChart');
+        if (ctxTrend) {
+            new Chart(ctxTrend.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: timeSeriesData.labels,
+                    datasets: [{
+                        label: 'Emissions (kg CO₂e)',
+                        data: timeSeriesData.data,
+                        borderColor: '#22c55e', // Green
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        borderWidth: 2,
+                        pointBackgroundColor: '#22c55e'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#9ca3af', font: { family: 'Inter', size: 10 } }
+                        },
+                        y: {
+                            grid: { color: '#1f2937' },
+                            ticks: { color: '#9ca3af', font: { family: 'Inter', size: 10 } },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // 2. Department Comparison Chart (if available)
+        {% if not is_scoped %}
+        const compData = {{ dept_comparison_data|safe }};
+        const ctxComp = document.getElementById('deptEmissionsComparisonChart');
+        if (ctxComp) {
+            new Chart(ctxComp.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: compData.labels,
+                    datasets: [{
+                        label: 'CO₂e Emissions (kg)',
+                        data: compData.data,
+                        backgroundColor: '#3b82f6', // Blue
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#9ca3af', font: { family: 'Inter', size: 10 } }
+                        },
+                        y: {
+                            grid: { color: '#1f2937' },
+                            ticks: { color: '#9ca3af', font: { family: 'Inter', size: 10 } },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        {% endif %}
+    });
+</script>
+{% endblock %}
