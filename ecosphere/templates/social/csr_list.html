@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+{% load core_tags %}
+
+{% block title %}CSR Activities | EcoSphere{% endblock %}
+
+{% block breadcrumb %}Social{% endblock %}
+{% block page_title %}Corporate Social Responsibility (CSR) Activities{% endblock %}
+
+{% block content %}
+<!-- Page Header Tabs -->
+<div class="flex items-center justify-between mb-6 border-b border-gray-800 pb-4">
+    <div class="flex items-center gap-1 bg-gray-900 p-1 rounded-lg border border-gray-800 text-xs font-semibold">
+        <a href="#activities-tab" id="tab-activities" class="px-4 py-2 bg-green-500/10 text-green-400 font-medium rounded-md border border-green-500/20">
+            All CSR Activities
+        </a>
+        <a href="#my-tab" id="tab-my" class="px-4 py-2 text-gray-400 hover:text-white transition-colors rounded-md">
+            My Participations
+        </a>
+        {% if user.profile.role in 'super_admin,esg_manager,dept_head' %}
+            <a href="#approval-tab" id="tab-approval" class="px-4 py-2 text-gray-400 hover:text-white transition-colors rounded-md flex items-center gap-1.5">
+                <span>Approval Queue</span>
+                {% if approval_queue.count %}
+                    <span class="bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-[9px] font-bold">{{ approval_queue.count }}</span>
+                {% endif %}
+            </a>
+        {% endif %}
+    </div>
+
+    {% if user.profile.role in 'super_admin,esg_manager,dept_head' %}
+        <a href="{% url 'social:csr-add' %}" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold text-xs transition-colors shadow-lg shadow-green-500/10 min-h-[40px] flex items-center justify-center">
+            + New Activity
+        </a>
+    {% endif %}
+</div>
+
+<!-- 1. All CSR Activities Tab -->
+<div id="section-activities" class="space-y-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {% for activity in activities %}
+            <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-gray-700 transition-all duration-300 flex flex-col justify-between relative">
+                <div>
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 font-bold border border-blue-500/20">
+                            {{ activity.category.name|default:"General" }}
+                        </span>
+                        <span class="text-xs text-orange-400 font-bold flex items-center gap-0.5">
+                            ⭐ {{ activity.xp_reward }} XP
+                        </span>
+                    </div>
+                    <h4 class="text-sm font-semibold text-white mb-2">{{ activity.title }}</h4>
+                    <p class="text-xs text-gray-400 line-clamp-3 mb-4">{{ activity.description }}</p>
+                </div>
+                
+                <div class="pt-4 border-t border-gray-800 mt-4 space-y-3">
+                    <div class="flex justify-between text-[10px] text-gray-500 font-medium">
+                        <span>Scope: {{ activity.department.name }}</span>
+                        <span>Date: {{ activity.start_date|date:"M d" }} - {{ activity.end_date|date:"M d, Y" }}</span>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        {% include 'partials/status_badge.html' with status=activity.status %}
+                        
+                        {% if activity.status == 'active' %}
+                            <form method="POST" action="{% url 'social:csr-enrol' activity.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" class="bg-green-500 hover:bg-green-600 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors min-h-[36px]">
+                                    Join Activity
+                                </button>
+                            </form>
+                        {% else %}
+                            <button disabled class="bg-gray-800 text-gray-600 text-xs font-bold px-4 py-2 rounded-lg cursor-not-allowed border border-gray-700 min-h-[36px]">
+                                Unavailable
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="md:col-span-3 text-center py-12 bg-gray-900 border border-gray-800 rounded-xl text-gray-500 font-medium text-sm">
+                No CSR activities logged for your department.
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- 2. My Participations Tab -->
+<div id="section-my" class="space-y-6 hidden">
+    <div class="table-container p-6">
+        <h3 class="text-sm font-semibold text-gray-300 mb-4 uppercase tracking-wider">My Active & Closed Participations</h3>
+        <table class="esg-table">
+            <thead>
+                <tr>
+                    <th>Activity Title</th>
+                    <th>Category</th>
+                    <th>XP Reward</th>
+                    <th>Status</th>
+                    <th class="text-right">Actions / Evidence</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in my_participations %}
+                    <tr>
+                        <td class="font-semibold text-white">{{ p.activity.title }}</td>
+                        <td>{{ p.activity.category.name|default:"General" }}</td>
+                        <td class="text-orange-400 font-semibold">⭐ {{ p.activity.xp_reward }} XP</td>
+                        <td>
+                            {% include 'partials/status_badge.html' with status=p.status %}
+                        </td>
+                        <td class="text-right">
+                            {% if p.status == 'enrolled' %}
+                                <!-- Inline evidence submission form -->
+                                <form method="POST" action="{% url 'social:csr-submit' p.pk %}" class="flex items-center gap-2 justify-end" enctype="multipart/form-data">
+                                    {% csrf_token %}
+                                    <input type="url" name="evidence_url" placeholder="Evidence URL" required
+                                        class="px-2.5 py-1.5 bg-gray-950 border border-gray-800 rounded text-xs text-white placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500">
+                                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded transition-colors">
+                                        Submit
+                                    </button>
+                                </form>
+                            {% elif p.status == 'pending_review' %}
+                                <span class="text-xs text-gray-500 italic">Evidence Pending Review</span>
+                            {% elif p.status == 'approved' %}
+                                <span class="text-xs text-green-400 font-semibold">✓ Completed & Eared</span>
+                            {% else %}
+                                <span class="text-xs text-red-400 font-semibold">✗ Rejected</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-8 text-gray-500 font-medium">
+                            You have not enrolled in any CSR activities yet.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- 3. Approval Queue Tab -->
+{% if user.profile.role in 'super_admin,esg_manager,dept_head' %}
+<div id="section-approval" class="space-y-6 hidden">
+    <div class="table-container p-6">
+        <h3 class="text-sm font-semibold text-gray-300 mb-4 uppercase tracking-wider">Employee Submissions Pending Review</h3>
+        <table class="esg-table">
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Department</th>
+                    <th>Activity Title</th>
+                    <th>Proof / Evidence URL</th>
+                    <th>Submitted Date</th>
+                    <th class="text-right">Approvals</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in approval_queue %}
+                    <tr>
+                        <td class="font-semibold text-white">{{ p.employee.username }}</td>
+                        <td>{{ p.activity.department.name }}</td>
+                        <td>{{ p.activity.title }}</td>
+                        <td>
+                            {% if p.evidence_url %}
+                                <a href="{{ p.evidence_url }}" target="_blank" class="text-blue-400 hover:underline text-xs flex items-center gap-1 font-semibold">
+                                    🌐 View Proof Link
+                                </a>
+                            {% else %}
+                                <span class="text-xs text-gray-500">No link submitted</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ p.submitted_at|date:"M d, Y H:i" }}</td>
+                        <td class="text-right flex items-center justify-end gap-2">
+                            <form method="POST" action="{% url 'social:csr-approve' p.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" class="bg-green-500 hover:bg-green-600 text-white text-xs font-bold px-3 py-1.5 rounded transition-colors min-h-[32px]">
+                                    Approve
+                                </button>
+                            </form>
+                            <form method="POST" action="{% url 'social:csr-reject' p.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" class="bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded transition-colors min-h-[32px]">
+                                    Reject
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-8 text-gray-500 font-medium">
+                            No employee submissions pending review.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const tabActivities = document.getElementById('tab-activities');
+        const tabMy = document.getElementById('tab-my');
+        const tabApproval = document.getElementById('tab-approval');
+
+        const secActivities = document.getElementById('section-activities');
+        const secMy = document.getElementById('section-my');
+        const secApproval = document.getElementById('section-approval');
+
+        function activateTab(activeBtn, activeSec) {
+            // Hide all sections
+            secActivities.classList.add('hidden');
+            secMy.classList.add('hidden');
+            if (secApproval) secApproval.classList.add('hidden');
+
+            // Reset tab styles
+            tabActivities.className = "px-4 py-2 text-gray-400 hover:text-white transition-colors rounded-md";
+            tabMy.className = "px-4 py-2 text-gray-400 hover:text-white transition-colors rounded-md";
+            if (tabApproval) tabApproval.className = "px-4 py-2 text-gray-400 hover:text-white transition-colors rounded-md flex items-center gap-1.5";
+
+            // Show active section & apply active tab styling
+            activeSec.classList.remove('hidden');
+            activeBtn.className = "px-4 py-2 bg-green-500/10 text-green-400 font-medium rounded-md border border-green-500/20 flex items-center gap-1.5";
+        }
+
+        tabActivities?.addEventListener('click', function(e) {
+            e.preventDefault();
+            activateTab(tabActivities, secActivities);
+        });
+
+        tabMy?.addEventListener('click', function(e) {
+            e.preventDefault();
+            activateTab(tabMy, secMy);
+        });
+
+        tabApproval?.addEventListener('click', function(e) {
+            e.preventDefault();
+            activateTab(tabApproval, secApproval);
+        });
+    });
+</script>
+{% endblock %}

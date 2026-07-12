@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}{% if object %}Edit{% else %}Add{% endif %} CSR Activity | EcoSphere{% endblock %}
+
+{% block breadcrumb %}Social / CSR{% endblock %}
+{% block page_title %}{% if object %}Edit CSR Activity{% else %}Create New CSR Activity{% endif %}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-lg">
+    <form method="POST" class="space-y-5">
+        {% csrf_token %}
+        
+        {% if form.errors %}
+            <div class="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-lg text-xs font-semibold space-y-1">
+                {% for field, errors in form.errors.items %}
+                    <p>{{ field|capfirst }}: {{ errors|striptags }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Title -->
+        <div>
+            <label for="id_title" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Activity Title</label>
+            <input type="text" name="title" id="id_title" required maxlength="200"
+                class="block w-full px-3 py-2.5 bg-gray-950 border border-gray-800 rounded-lg text-white text-sm placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500" 
+                placeholder="e.g. Tree Plantation Drive"
+                value="{{ form.instance.title|default:'' }}">
+        </div>
+
+        <!-- Description -->
+        <div>
+            <label for="id_description" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Description</label>
+            <textarea name="description" id="id_description" required rows="4"
+                class="block w-full px-3 py-2.5 bg-gray-950 border border-gray-800 rounded-lg text-white text-sm placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500" 
+                placeholder="Describe the activity targets and expectations...">{{ form.instance.description|default:'' }}</textarea>
+        </div>
+
+        <!-- Category & Department -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label for="id_category" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Category</label>
+                <select name="category" id="id_category"
+                    class="appearance-none block w-full px-3 py-2.5 bg-gray-950 border border-gray-800 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500">
+                    <option value="">---------</option>
+                    {% for choice in form.fields.category.queryset %}
+                        <option value="{{ choice.pk }}" {% if form.instance.category.pk == choice.pk %}selected{% endif %}>
+                            {{ choice.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="id_department" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Scoped Department</label>
+                <select name="department" id="id_department" required 
+                    class="appearance-none block w-full px-3 py-2.5 bg-gray-950 border border-gray-800 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500">
+                    {% for choice in form.fields.department.queryset %}
+                        <option value="{{ choice.pk }}" {% if form.fields.department.initial.pk == choice.pk or form.instance.department.pk == choice.pk %}selected{% endif %}>
+                            {{ choice.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- Start & End Date -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label for="id_start_date" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Start Date</label>
+                <input type="date" name="start_date" id="id_start_date" required
+                    class="block w-full px-3 py-2.5 bg-gray-950 border border-gray-800 rounded-lg text-white text-sm placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                    value="{{ form.instance.start_date|date:'Y-m-d'|default:'' }}">
+            </div>
+            <div>
+                <label for="id_end_date" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">End Date</label>
+                <input type="date" name="end_date" id="id_end_date" required
+                    class="block w-full px-3 py-2.5 bg-gray-950 border border-gray-800 rounded-lg text-white text-sm placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                    value="{{ form.instance.end_date|date:'Y-m-d'|default:'' }}">
+            </div>
+        </div>
+
+        <!-- Max Participants & XP Reward -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label for="id_max_participants" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Maximum Participant Cap</label>
+                <input type="number" name="max_participants" id="id_max_participants" required
+                    class="block w-full px-3 py-2.5 bg-gray-950 border border-gray-800 rounded-lg text-white text-sm placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500" 
+                    placeholder="e.g. 50"
+                    value="{{ form.instance.max_participants|default:'' }}">
+            </div>
+            <div>
+                <label for="id_xp_reward" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">XP Reward Value</label>
+                <input type="number" name="xp_reward" id="id_xp_reward" required
+                    class="block w-full px-3 py-2.5 bg-gray-950 border border-gray-800 rounded-lg text-white text-sm placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500" 
+                    placeholder="e.g. 100"
+                    value="{{ form.instance.xp_reward|default:'0' }}">
+            </div>
+        </div>
+
+        <!-- Requires Evidence Toggle & Status -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+            <div>
+                <label for="id_status" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Activity Status</label>
+                <select name="status" id="id_status" required 
+                    class="appearance-none block w-full px-3 py-2.5 bg-gray-950 border border-gray-800 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500">
+                    <option value="upcoming" {% if form.instance.status == 'upcoming' %}selected{% endif %}>Upcoming</option>
+                    <option value="active" {% if form.instance.status == 'active' %}selected{% endif %}>Active</option>
+                    <option value="closed" {% if form.instance.status == 'closed' %}selected{% endif %}>Closed</option>
+                </select>
+            </div>
+            <div class="flex items-center pt-6">
+                <input type="checkbox" name="requires_evidence" id="id_requires_evidence" 
+                    class="h-4 w-4 text-green-500 focus:ring-green-500 border-gray-800 rounded bg-gray-950"
+                    {% if form.instance.requires_evidence %}checked{% endif %}>
+                <label for="id_requires_evidence" class="ml-2 block text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                    Require Proof / Evidence Upload
+                </label>
+            </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex gap-3 justify-end pt-4 border-t border-gray-800">
+            <button type="submit" 
+                class="px-5 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold text-xs transition-colors shadow-lg shadow-green-500/10 min-h-[40px]">
+                {% if object %}Update Activity{% else %}Create Activity{% endif %}
+            </button>
+            <a href="{% url 'social:csr' %}" 
+                class="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg font-semibold text-xs transition-colors border border-gray-700 text-center min-h-[40px] flex items-center justify-center">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
