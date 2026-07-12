@@ -3,3 +3,6 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 
 class NotificationSettingsView(LoginRequiredMixin, TemplateView):
     template_name = 'notifications/settings.html'
+
+class NotificationListView(LoginRequiredMixin, TemplateView):
+    template_name = 'notifications/list.html'
