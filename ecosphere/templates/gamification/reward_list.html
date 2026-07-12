@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Rewards Store | EcoSphere{% endblock %}
+
+{% block breadcrumb %}Gamification{% endblock %}
+{% block page_title %}Sustainability Reward Catalog{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6 border-b border-gray-800 pb-4">
+    <div class="flex items-center gap-1 bg-gray-900 p-1 rounded-lg border border-gray-800 text-xs font-semibold">
+        <a href="{% url 'gamification:challenges' %}" class="px-4 py-2 text-gray-400 hover:text-white transition-colors rounded-md">
+            Active Challenges
+        </a>
+        <a href="{% url 'gamification:badges' %}" class="px-4 py-2 text-gray-400 hover:text-white transition-colors rounded-md">
+            Badge Gallery
+        </a>
+        <a href="{% url 'gamification:rewards' %}" class="px-4 py-2 bg-green-500/10 text-green-400 font-medium rounded-md border border-green-500/20">
+            Redeem Rewards
+        </a>
+        <a href="{% url 'gamification:leaderboard' %}" class="px-4 py-2 text-gray-400 hover:text-white transition-colors rounded-md">
+            Leaderboards
+        </a>
+    </div>
+
+    <div class="flex items-center gap-4">
+        <!-- XP Wallet Balance widget -->
+        <div class="bg-orange-500/15 border border-orange-500/30 rounded-lg px-4 py-2 flex items-center gap-2">
+            <span class="text-lg">⭐</span>
+            <div>
+                <span class="text-[9px] text-orange-400/80 font-bold uppercase tracking-wider block leading-none">Your Wallet</span>
+                <span class="text-sm font-extrabold text-white mt-0.5 block leading-none">{{ xp_balance }} XP</span>
+            </div>
+        </div>
+
+        {% if user.profile.role in 'super_admin,esg_manager' %}
+            <a href="{% url 'gamification:reward-add' %}" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold text-xs transition-colors shadow-lg shadow-green-500/10 min-h-[40px] flex items-center justify-center">
+                + Create RewardItem
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Rewards Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    {% for reward in rewards %}
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-gray-700 transition-all duration-300 flex flex-col justify-between relative">
+            <div>
+                <div class="flex justify-between items-start mb-3">
+                    <span class="text-sm font-extrabold text-orange-400">
+                        ⭐ {{ reward.xp_cost }} XP
+                    </span>
+                    <span class="text-[10px] text-gray-500 font-semibold">
+                        Stock: {{ reward.stock_quantity }} left
+                    </span>
+                </div>
+                <h4 class="text-sm font-semibold text-white mb-2">{{ reward.name }}</h4>
+                <p class="text-xs text-gray-400 mb-4 line-clamp-3 leading-relaxed">{{ reward.description }}</p>
+            </div>
+
+            <!-- Redemption Action Button -->
+            <div class="pt-4 border-t border-gray-800 mt-auto flex items-center justify-between">
+                <div>
+                    {% if reward.is_out_of_stock or reward.stock_quantity <= 0 %}
+                        <span class="px-2 py-0.5 rounded bg-red-500/10 text-red-400 font-semibold text-[10px] uppercase border border-red-500/20">Out of Stock</span>
+                    {% else %}
+                        <span class="px-2 py-0.5 rounded bg-green-500/10 text-green-400 font-semibold text-[10px] uppercase border border-green-500/20">Available</span>
+                    {% endif %}
+                </div>
+
+                {% if reward.is_out_of_stock or reward.stock_quantity <= 0 %}
+                    <button disabled class="bg-gray-800 text-gray-600 text-xs font-bold px-4 py-2 rounded-lg cursor-not-allowed border border-gray-700 min-h-[36px]">
+                        Redeem Reward
+                    </button>
+                {% elif xp_balance < reward.xp_cost %}
+                    <button disabled class="bg-gray-800 text-gray-600 text-xs font-bold px-4 py-2 rounded-lg cursor-not-allowed border border-gray-700 min-h-[36px]" title="Insufficient XP Balance">
+                        Not enough XP
+                    </button>
+                {% else %}
+                    <form method="POST" action="{% url 'gamification:redeem' reward.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors min-h-[36px] shadow-lg shadow-orange-500/10">
+                            Redeem Reward
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    {% empty %}
+        <div class="md:col-span-3 text-center py-12 bg-gray-900 border border-gray-800 rounded-xl text-gray-500 font-medium text-sm">
+            No rewards listed in store currently. Check back later!
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% load core_tags %}
+
+{% block title %}Challenges | EcoSphere{% endblock %}
+
+{% block breadcrumb %}Gamification{% endblock %}
+{% block page_title %}Sustainability Challenges{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6 border-b border-gray-800 pb-4">
+    <div class="flex items-center gap-1 bg-gray-900 p-1 rounded-lg border border-gray-800 text-xs font-semibold">
+        <a href="{% url 'gamification:challenges' %}" class="px-4 py-2 bg-green-500/10 text-green-400 font-medium rounded-md border border-green-500/20">
+            Active Challenges
+        </a>
+        <a href="{% url 'gamification:badges' %}" class="px-4 py-2 text-gray-400 hover:text-white transition-colors rounded-md">
+            Badge Gallery
+        </a>
+        <a href="{% url 'gamification:rewards' %}" class="px-4 py-2 text-gray-400 hover:text-white transition-colors rounded-md">
+            Redeem Rewards
+        </a>
+        <a href="{% url 'gamification:leaderboard' %}" class="px-4 py-2 text-gray-400 hover:text-white transition-colors rounded-md">
+            Leaderboards
+        </a>
+    </div>
+
+    {% if user.profile.role in 'super_admin,esg_manager' %}
+        <a href="{% url 'gamification:challenge-add' %}" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold text-xs transition-colors shadow-lg shadow-green-500/10 min-h-[40px] flex items-center justify-center">
+            + New Challenge
+        </a>
+    {% endif %}
+</div>
+
+<!-- Challenges Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+    {% for challenge in challenges %}
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-gray-700 transition-all duration-300 flex flex-col justify-between relative">
+            
+            <!-- XP Indicator -->
+            <span class="absolute top-3 right-3 bg-orange-500 text-white text-[10px] px-2.5 py-0.5 rounded font-bold uppercase tracking-wider">
+                ⭐ {{ challenge.xp_reward }} XP
+            </span>
+
+            <div>
+                <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-400 font-bold border border-purple-500/20 w-fit block mb-3">
+                    {{ challenge.category.name|default:"General" }}
+                </span>
+                
+                <h4 class="text-sm font-semibold text-white mb-2 pr-16">{{ challenge.title }}</h4>
+                <p class="text-xs text-gray-400 line-clamp-3 mb-4">{{ challenge.description }}</p>
+                <p class="text-[10px] text-gray-500 font-medium mb-4">Deadline: {{ challenge.end_date|date:"M d, Y" }}</p>
+            </div>
+
+            <!-- Join / Evidence Submit Action -->
+            <div class="pt-4 border-t border-gray-800 mt-auto flex items-center justify-between">
+                {% include 'partials/status_badge.html' with status=challenge.status %}
+
+                {% if challenge.status == 'active' %}
+                    <!-- Check if user is enrolled -->
+                    {% with enrolment=challenge|get_enrolment:user %}
+                    {% if enrolment %}
+                        {% if enrolment.submitted_at %}
+                            <span class="text-xs text-gray-500 italic">Evidence Submitted</span>
+                        {% else %}
+                            <!-- Submit Evidence Inline Form -->
+                            <form method="POST" action="{% url 'gamification:submit' enrolment.pk %}" class="flex items-center gap-1">
+                                {% csrf_token %}
+                                <input type="url" name="evidence_url" placeholder="Proof Link" required
+                                    class="px-2 py-1 bg-gray-950 border border-gray-800 rounded text-[10px] text-white placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-green-500">
+                                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold px-2 py-1.5 rounded">
+                                    Submit
+                                </button>
+                            </form>
+                        {% endif %}
+                    {% else %}
+                        <form method="POST" action="{% url 'gamification:enrol' challenge.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" class="bg-green-500 hover:bg-green-600 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors min-h-[36px]">
+                                Join Challenge
+                            </button>
+                        </form>
+                    {% endif %}
+                    {% endwith %}
+                {% else %}
+                    <span class="text-xs text-gray-500 italic">Challenge {{ challenge.status|title }}</span>
+                {% endif %}
+            </div>
+        </div>
+    {% empty %}
+        <div class="md:col-span-3 text-center py-12 bg-gray-900 border border-gray-800 rounded-xl text-gray-500 font-medium text-sm">
+            No active sustainability challenges logged.
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

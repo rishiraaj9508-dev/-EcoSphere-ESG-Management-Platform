@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% load core_tags %}
+
+{% block title %}Leaderboards | EcoSphere{% endblock %}
+
+{% block breadcrumb %}Gamification{% endblock %}
+{% block page_title %}Leaderboards & Scoreboards{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6 border-b border-gray-800 pb-4">
+    <div class="flex items-center gap-1 bg-gray-900 p-1 rounded-lg border border-gray-800 text-xs font-semibold">
+        <a href="{% url 'gamification:challenges' %}" class="px-4 py-2 text-gray-400 hover:text-white transition-colors rounded-md">
+            Active Challenges
+        </a>
+        <a href="{% url 'gamification:badges' %}" class="px-4 py-2 text-gray-400 hover:text-white transition-colors rounded-md">
+            Badge Gallery
+        </a>
+        <a href="{% url 'gamification:rewards' %}" class="px-4 py-2 text-gray-400 hover:text-white transition-colors rounded-md">
+            Redeem Rewards
+        </a>
+        <a href="{% url 'gamification:leaderboard' %}" class="px-4 py-2 bg-green-500/10 text-green-400 font-medium rounded-md border border-green-500/20">
+            Leaderboards
+        </a>
+    </div>
+</div>
+
+<!-- Leaderboards Row -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    
+    <!-- Employee XP Leaderboard -->
+    <div class="table-container p-6">
+        <div class="flex justify-between items-center mb-5">
+            <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider">Top 10 Employees (XP Scoreboard)</h3>
+            <span class="text-xs text-gray-500 font-semibold">Individual Ranking</span>
+        </div>
+
+        <table class="esg-table">
+            <thead>
+                <tr>
+                    <th class="w-16">Rank</th>
+                    <th>Employee Name</th>
+                    <th>Department</th>
+                    <th class="text-right">Wallet Balance</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in employee_leaderboard %}
+                    <tr class="{% if user == entry.employee %}bg-green-500/10 border-l-2 border-green-500{% endif %}">
+                        <td>
+                            {% if forloop.counter == 1 %}
+                                🥇
+                            {% elif forloop.counter == 2 %}
+                                🥈
+                            {% elif forloop.counter == 3 %}
+                                🥉
+                            {% else %}
+                                {{ forloop.counter }}
+                            {% endif %}
+                        </td>
+                        <td class="font-semibold text-white">
+                            {{ entry.employee.username }}
+                            {% if user == entry.employee %}
+                                <span class="text-[9px] px-1.5 py-0.5 rounded bg-green-500/20 text-green-400 ml-1 font-bold">YOU</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-gray-400">{{ entry.employee.profile.department.name|default:"General" }}</td>
+                        <td class="text-right text-orange-400 font-bold">⭐ {{ entry.xp }} XP</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-6 text-gray-500 font-medium text-xs">No XP payouts recorded yet.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Department ESG Leaderboard -->
+    <div class="table-container p-6">
+        <div class="flex justify-between items-center mb-5">
+            <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider">Department overall ESG Leaderboard</h3>
+            <span class="text-xs text-gray-500 font-semibold">Organisational Ranking</span>
+        </div>
+
+        <table class="esg-table">
+            <thead>
+                <tr>
+                    <th class="w-16">Rank</th>
+                    <th>Department</th>
+                    <th class="text-right">Overall ESG Score</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in dept_leaderboard %}
+                    <tr class="{% if user.profile.department == item.department %}bg-green-500/10 border-l-2 border-green-500{% endif %}">
+                        <td>
+                            {% if forloop.counter == 1 %}
+                                🥇
+                            {% elif forloop.counter == 2 %}
+                                🥈
+                            {% elif forloop.counter == 3 %}
+                                🥉
+                            {% else %}
+                                {{ forloop.counter }}
+                            {% endif %}
+                        </td>
+                        <td class="font-semibold text-white">{{ item.department.name }}</td>
+                        <td class="text-right text-green-400 font-bold">{{ item.overall_score }} / 100</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center py-6 text-gray-500 font-medium text-xs">No department scores registered.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}

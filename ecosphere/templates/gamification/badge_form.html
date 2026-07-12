@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Define Badge | EcoSphere{% endblock %}
+
+{% block breadcrumb %}Gamification / Badge{% endblock %}
+{% block page_title %}Define Achievement Badge{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-lg">
+    <form method="POST" class="space-y-5" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        {% if form.errors %}
+            <div class="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-lg text-xs font-semibold space-y-1">
+                {% for field, errors in form.errors.items %}
+                    <p>{{ field|capfirst }}: {{ errors|striptags }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Name -->
+        <div>
+            <label for="id_name" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Badge Name</label>
+            <input type="text" name="name" id="id_name" required maxlength="100"
+                class="block w-full px-3 py-2.5 bg-gray-950 border border-gray-800 rounded-lg text-white text-sm placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500" 
+                placeholder="e.g. Carbon Slayer"
+                value="{{ form.instance.name|default:'' }}">
+        </div>
+
+        <!-- Description -->
+        <div>
+            <label for="id_description" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Description</label>
+            <textarea name="description" id="id_description" required rows="3"
+                class="block w-full px-3 py-2.5 bg-gray-950 border border-gray-800 rounded-lg text-white text-sm placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500" 
+                placeholder="Describe the badge achievement conditions...">{{ form.instance.description|default:'' }}</textarea>
+        </div>
+
+        <!-- Criteria Type & Value -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label for="id_criteria_type" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Award Criteria Type</label>
+                <select name="criteria_type" id="id_criteria_type" required 
+                    class="appearance-none block w-full px-3 py-2.5 bg-gray-950 border border-gray-800 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500">
+                    <option value="xp_threshold">XP Threshold</option>
+                    <option value="challenges_completed">Challenges Completed Count</option>
+                    <option value="category_participation">Category Participation Count</option>
+                </select>
+            </div>
+            <div>
+                <label for="id_criteria_value" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Requirement Target Value</label>
+                <input type="number" name="criteria_value" id="id_criteria_value" required
+                    class="block w-full px-3 py-2.5 bg-gray-950 border border-gray-800 rounded-lg text-white text-sm placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500" 
+                    placeholder="e.g. 500"
+                    value="{{ form.instance.criteria_value|default:'' }}">
+            </div>
+        </div>
+
+        <!-- Category (for Category Participation) & Auto award -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+            <div>
+                <label for="id_criteria_category" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Category (if category participation)</label>
+                <select name="criteria_category" id="id_criteria_category"
+                    class="appearance-none block w-full px-3 py-2.5 bg-gray-950 border border-gray-800 rounded-lg text-white text-sm focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500">
+                    <option value="">---------</option>
+                    {% for choice in form.fields.criteria_category.queryset %}
+                        <option value="{{ choice.pk }}" {% if form.instance.criteria_category.pk == choice.pk %}selected{% endif %}>
+                            {{ choice.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="flex items-center pt-6">
+                <input type="checkbox" name="auto_award" id="id_auto_award" 
+                    class="h-4 w-4 text-green-500 focus:ring-green-500 border-gray-800 rounded bg-gray-950"
+                    {% if form.instance.auto_award|default:True %}checked{% endif %}>
+                <label for="id_auto_award" class="ml-2 block text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                    Enable Automatic Award Engine
+                </label>
+            </div>
+        </div>
+
+        <!-- Icon -->
+        <div>
+            <label for="id_icon" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Badge Graphic / Icon</label>
+            <input type="file" name="icon" id="id_icon" accept="image/*"
+                class="block w-full text-xs text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-gray-850 file:text-green-400 hover:file:bg-gray-800 file:cursor-pointer">
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex gap-3 justify-end pt-4 border-t border-gray-800">
+            <button type="submit" 
+                class="px-5 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold text-xs transition-colors shadow-lg shadow-green-500/10 min-h-[40px]">
+                Define Badge
+            </button>
+            <a href="{% url 'gamification:badges' %}" 
+                class="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg font-semibold text-xs transition-colors border border-gray-700 text-center min-h-[40px] flex items-center justify-center">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
